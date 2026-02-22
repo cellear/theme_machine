@@ -256,7 +256,17 @@ function d7_theme_compat_theme_registry_alter(&$registry) {
     }
   }
 
-  // Step 3: Ensure the 'html' hook exists in the registry.
+  // Step 3: Register D7 theme functions that have a mismatched prefix.
+  //
+  // When a D7 theme is renamed (e.g. 'garland' -> 'garland_d7'), Backdrop
+  // looks for garland_d7_preprocess_page() but the theme defines
+  // garland_preprocess_page(). We detect the original prefix by scanning
+  // for known preprocess/process function patterns and add them to the
+  // registry. This also handles D7's process layer (which Backdrop removed)
+  // by appending process functions before the flatten step.
+  _d7_theme_compat_register_theme_functions($registry);
+
+  // Step 4: Ensure the 'html' hook exists in the registry.
   // Backdrop removed html.tpl.php, so the 'html' hook may not be registered.
   if (!isset($registry['html']) && isset($template_map['html'])) {
     $registry['html'] = array(
@@ -303,13 +313,30 @@ function d7_theme_compat_preprocess_page(&$variables) {
 
   // Populate region arrays from the theme's declared regions.
   // D7 reference: theme.inc:2681-2688
+  // If the theme doesn't declare regions, D7 provides defaults.
+  // See drupal/modules/system/system.module system_region_list_return().
   global $theme;
   $themes = list_themes();
-  if (isset($themes[$theme]->info['regions'])) {
-    foreach ($themes[$theme]->info['regions'] as $region_key => $region_name) {
-      if (!isset($variables['page'][$region_key])) {
-        $variables['page'][$region_key] = array();
-      }
+  if (!empty($themes[$theme]->info['regions'])) {
+    $regions = $themes[$theme]->info['regions'];
+  }
+  else {
+    // D7 default regions (from system.module).
+    $regions = array(
+      'sidebar_first' => 'Left sidebar',
+      'sidebar_second' => 'Right sidebar',
+      'content' => 'Content',
+      'header' => 'Header',
+      'footer' => 'Footer',
+      'highlighted' => 'Highlighted',
+      'help' => 'Help',
+      'page_top' => 'Page top',
+      'page_bottom' => 'Page bottom',
+    );
+  }
+  foreach ($regions as $region_key => $region_name) {
+    if (!isset($variables['page'][$region_key])) {
+      $variables['page'][$region_key] = array();
     }
   }
 
@@ -358,7 +385,14 @@ function d7_theme_compat_preprocess_page(&$variables) {
 
   // Page elements.
   $variables['action_links'] = menu_local_actions();
-  $variables['tabs'] = menu_local_tabs();
+
+  // Tabs: D7 returns a render array with #primary and #secondary keys.
+  // Backdrop's menu_local_tabs() returns a rendered string. We need the
+  // D7 structure because themes like Garland access $tabs['#secondary'].
+  $variables['tabs'] = array(
+    '#primary' => menu_primary_local_tasks(),
+    '#secondary' => menu_secondary_local_tasks(),
+  );
 
   // Layout variable (sidebar detection).
   // D7 reference: theme.inc:2691-2697
@@ -477,6 +511,24 @@ function _d7_theme_compat_preprocess_html(&$variables) {
 }
 
 // ============================================================================
+// D7 function stubs
+// ============================================================================
+
+// D7's color.module provided _color_html_alter() and _color_page_alter() which
+// D7 themes call in their process functions. Backdrop's color module doesn't
+// have these. Provide harmless stubs so themes don't fatal.
+if (!function_exists('_color_html_alter')) {
+  function _color_html_alter(&$variables) {
+    // Stub: Backdrop's color module handles this differently.
+  }
+}
+if (!function_exists('_color_page_alter')) {
+  function _color_page_alter(&$variables) {
+    // Stub: Backdrop's color module handles this differently.
+  }
+}
+
+// ============================================================================
 // Helper functions
 // ============================================================================
 
@@ -516,6 +568,109 @@ function _d7_theme_compat_get_d7_theme_path() {
     }
   }
   return FALSE;
+}
+
+/**
+ * Detect and register D7 theme preprocess/process functions.
+ *
+ * When a D7 theme is renamed (e.g. 'garland' -> 'garland_d7'), its
+ * preprocess and process functions (garland_preprocess_page, etc.) won't
+ * be found by Backdrop because it looks for the garland_d7_ prefix.
+ *
+ * This function detects the original prefix by scanning for defined
+ * functions matching {prefix}_preprocess_{hook} patterns, then injects
+ * them into the appropriate places in the registry's preprocess chains.
+ *
+ * D7 process functions (which Backdrop removed) are also handled: they
+ * are inserted late in the preprocess chain, before our flatten step.
+ */
+function _d7_theme_compat_register_theme_functions(&$registry) {
+  global $theme;
+
+  // Determine the original D7 theme function prefix.
+  // Strategy: include the theme's template.php, then scan defined functions
+  // for common preprocess patterns to find the original prefix.
+  $d7_theme_path = _d7_theme_compat_get_d7_theme_path();
+  if (!$d7_theme_path) {
+    return;
+  }
+
+  // Include the theme's template.php if it exists (may already be included).
+  $template_file = BACKDROP_ROOT . '/' . $d7_theme_path . '/template.php';
+  if (file_exists($template_file)) {
+    include_once $template_file;
+  }
+
+  // Find the original prefix by looking for functions matching
+  // {something}_preprocess_{hook} where {something} != the current theme name.
+  // We check a few common hooks to identify the prefix.
+  $original_prefix = NULL;
+  $probe_hooks = array('page', 'html', 'node', 'comment', 'block', 'maintenance_page');
+  foreach ($probe_hooks as $probe) {
+    // Try the theme name without _d7 suffix.
+    if (substr($theme, -3) === '_d7') {
+      $candidate = substr($theme, 0, -3);
+      if (function_exists($candidate . '_preprocess_' . $probe) ||
+          function_exists($candidate . '_process_' . $probe)) {
+        $original_prefix = $candidate;
+        break;
+      }
+    }
+  }
+
+  // If no _d7 suffix match, try a broader scan.
+  if (!$original_prefix) {
+    $all_functions = get_defined_functions();
+    foreach ($all_functions['user'] as $func) {
+      if (preg_match('/^(.+)_preprocess_(page|html|node)$/', $func, $matches)) {
+        $candidate = $matches[1];
+        // Must not be an existing module or the current theme name.
+        if ($candidate !== $theme && $candidate !== 'template' &&
+            !module_exists($candidate) && $candidate !== 'd7_theme_compat') {
+          $original_prefix = $candidate;
+          break;
+        }
+      }
+    }
+  }
+
+  if (!$original_prefix || $original_prefix === $theme) {
+    return;
+  }
+
+  // Now inject the original-prefix functions into the registry.
+  foreach ($registry as $hook => &$info) {
+    if (!isset($info['preprocess functions'])) {
+      continue;
+    }
+
+    // D7 preprocess function: {original}_preprocess_{hook}
+    $preprocess_func = $original_prefix . '_preprocess_' . $hook;
+    if (function_exists($preprocess_func) && !in_array($preprocess_func, $info['preprocess functions'])) {
+      // Insert before our flatten function (which should be last).
+      $flatten_pos = array_search('_d7_theme_compat_flatten_variables', $info['preprocess functions']);
+      if ($flatten_pos !== FALSE) {
+        array_splice($info['preprocess functions'], $flatten_pos, 0, array($preprocess_func));
+      }
+      else {
+        $info['preprocess functions'][] = $preprocess_func;
+      }
+    }
+
+    // D7 process function: {original}_process_{hook}
+    // Backdrop removed the process layer, but D7 themes may define these.
+    // Insert them after preprocess but before flatten.
+    $process_func = $original_prefix . '_process_' . $hook;
+    if (function_exists($process_func) && !in_array($process_func, $info['preprocess functions'])) {
+      $flatten_pos = array_search('_d7_theme_compat_flatten_variables', $info['preprocess functions']);
+      if ($flatten_pos !== FALSE) {
+        array_splice($info['preprocess functions'], $flatten_pos, 0, array($process_func));
+      }
+      else {
+        $info['preprocess functions'][] = $process_func;
+      }
+    }
+  }
 }
 
 /**

@@ -1,0 +1,8 @@
+name = Garland (Drupal 7)
+description = A Drupal 7 theme running on Backdrop via d7_theme_compat. Multi-column theme with configurable colors and fluid/fixed width layouts.
+package = Drupal 7 Themes
+version = VERSION
+core = 7.x
+stylesheets[all][] = style.css
+stylesheets[print][] = print.css
+settings[garland_width] = fluid
