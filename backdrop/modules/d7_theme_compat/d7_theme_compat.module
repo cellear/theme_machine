@@ -501,6 +501,8 @@ function _d7_theme_compat_is_d7_theme() {
 
 /**
  * Get the filesystem path of the active D7 theme, if any.
+ *
+ * Note: Backdrop uses $theme->filename (not $theme->uri like D7).
  */
 function _d7_theme_compat_get_d7_theme_path() {
   global $theme;
@@ -509,7 +511,9 @@ function _d7_theme_compat_get_d7_theme_path() {
   }
   $themes = list_themes();
   if (isset($themes[$theme]->info['core']) && $themes[$theme]->info['core'] == '7.x') {
-    return dirname($themes[$theme]->uri);
+    if (isset($themes[$theme]->filename)) {
+      return dirname($themes[$theme]->filename);
+    }
   }
   return FALSE;
 }
