@@ -1,0 +1,21 @@
+# OS files
+.DS_Store
+
+# Local dev environment
+.ddev/
+
+# Reference Drupal 7 install (not part of the project)
+drupal/
+
+# Backdrop site data (config, uploads, private files)
+backdrop/files/
+backdrop/private/
+
+# Claude Code local state
+.claude/
+
+# Working notes
+Notes/
+
+# Agent handoff protocol source (upstream repo)
+agent-handoff/

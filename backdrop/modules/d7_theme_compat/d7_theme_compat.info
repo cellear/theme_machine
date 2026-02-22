@@ -1,0 +1,5 @@
+name = D7 Theme Compatibility
+description = Enables unmodified Drupal 7 themes to run on Backdrop CMS.
+type = module
+backdrop = 1.x
+package = Development

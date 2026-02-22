@@ -1,0 +1,620 @@
+<?php
+/**
+ * @file
+ * Enables unmodified Drupal 7 themes to run on Backdrop CMS.
+ *
+ * This module bridges the gap between D7's theme expectations and Backdrop's
+ * theme system. When a D7 theme (identified by 'core = 7.x' in its .info file)
+ * is the active theme, this module:
+ *
+ * 1. Makes D7 themes visible and enableable in admin/appearance
+ * 2. Suppresses Backdrop's Layout module (D7 themes don't expect it)
+ * 3. Replaces Backdrop core templates with D7 equivalents
+ * 4. Restores D7's template_process() variable flattening
+ * 5. Populates D7-style page variables ($logo, $site_name, $page regions, etc.)
+ * 6. Wraps page output in html.tpl.php (which Backdrop removed)
+ */
+
+/**
+ * Map of theme registry hooks to their D7 core template paths.
+ *
+ * Keys are theme hook names as they appear in the registry.
+ * Values are paths RELATIVE to BACKDROP_ROOT (because Backdrop's theme()
+ * function prepends BACKDROP_ROOT when including template files).
+ *
+ * D7 templates are shipped in this module's templates/ directory.
+ * When a D7 theme is active, we redirect these hooks to use the D7 versions
+ * instead of Backdrop's.
+ */
+function _d7_theme_compat_get_template_map() {
+  // All D7 templates live in our module's templates/ directory.
+  $tpl_path = backdrop_get_path('module', 'd7_theme_compat') . '/templates';
+
+  // Only hooks that use templates in both D7 and Backdrop are listed here.
+  // Omitted:
+  //   'region' — not registered in Backdrop's theme registry (handled by Layout)
+  //   'field'  — uses theme_field() function in Backdrop, not a template
+  return array(
+    'html'             => $tpl_path,
+    'page'             => $tpl_path,
+    'maintenance_page' => $tpl_path,
+    'node'             => $tpl_path,
+    'block'            => $tpl_path,
+    'comment'          => $tpl_path,
+    'user_profile'     => $tpl_path,
+    'user_picture'     => $tpl_path,
+  );
+}
+
+// ============================================================================
+// Hook implementations
+// ============================================================================
+
+/**
+ * Implements hook_system_info_alter().
+ *
+ * Detects themes with 'core = 7.x' and injects the Backdrop compatibility
+ * keys so they appear as valid, enableable themes in admin/appearance.
+ */
+function d7_theme_compat_system_info_alter(&$info, $file, $type) {
+  if ($type == 'theme' && isset($info['core']) && $info['core'] == '7.x') {
+    $info['backdrop'] = '1.x';
+    if (!isset($info['type'])) {
+      $info['type'] = 'theme';
+    }
+  }
+}
+
+/**
+ * Implements hook_init().
+ *
+ * Suppresses the Layout module when a D7 theme is active, so that page
+ * rendering follows the D7 path: menu callback -> backdrop_render_page() ->
+ * theme('page') -> page.tpl.php, instead of going through the Layout system.
+ *
+ * Note: Cannot use _d7_theme_compat_is_d7_theme() here because the global
+ * $theme isn't initialized yet during hook_init(). Instead, we check the
+ * configured default theme directly via config.
+ */
+function d7_theme_compat_init() {
+  $default_theme = config_get('system.core', 'theme_default');
+  $themes = list_themes();
+  if (isset($themes[$default_theme]->info['core']) && $themes[$default_theme]->info['core'] == '7.x') {
+    layout_suppress(TRUE);
+  }
+}
+
+/**
+ * Implements hook_page_delivery_callback_alter().
+ *
+ * Replaces Backdrop's default HTML delivery with our D7-style delivery that
+ * wraps page output in html.tpl.php. Backdrop removed html.tpl.php entirely;
+ * D7 themes require it as the outer wrapper around page.tpl.php.
+ */
+function d7_theme_compat_page_delivery_callback_alter(&$delivery_callback) {
+  if (_d7_theme_compat_is_d7_theme() && $delivery_callback == 'backdrop_deliver_html_page') {
+    $delivery_callback = '_d7_theme_compat_deliver_html_page';
+  }
+}
+
+/**
+ * Custom page delivery callback for D7 themes.
+ *
+ * Replicates D7's page delivery: render the page content via theme('page'),
+ * then wrap it in html.tpl.php via theme('html'). In D7, this wrapping was
+ * done via #theme_wrappers => array('html') on the page element, which
+ * Backdrop removed.
+ *
+ * Based on backdrop_deliver_html_page() in common.inc.
+ */
+function _d7_theme_compat_deliver_html_page($page_callback_result) {
+  $site_config = config('system.core');
+
+  if (isset($page_callback_result) && is_null(backdrop_get_http_header('Content-Type'))) {
+    backdrop_add_http_header('Content-Type', 'text/html; charset=utf-8');
+  }
+
+  global $language;
+  backdrop_add_http_header('Content-Language', $language->langcode);
+
+  $frame_options = $site_config->get('x_frame_options');
+  if ($frame_options && is_null(backdrop_get_http_header('X-Frame-Options'))) {
+    backdrop_add_http_header('X-Frame-Options', $frame_options);
+  }
+
+  if (is_int($page_callback_result)) {
+    switch ($page_callback_result) {
+      case MENU_NOT_FOUND:
+        backdrop_add_http_header('Status', '404 Not Found');
+        watchdog('page not found', check_plain($_GET['q']), NULL, WATCHDOG_WARNING);
+        fast_404();
+        if (!isset($_GET['destination'])) {
+          if (!url_is_external($_GET['q'])) {
+            $_GET['destination'] = $_GET['q'];
+          }
+        }
+        $path = backdrop_get_normal_path($site_config->get('site_404'));
+        if (empty($path)) {
+          $path = 'system/404';
+        }
+        menu_set_active_item($path);
+        $page_callback_result = menu_execute_active_handler($path, FALSE);
+        break;
+
+      case MENU_ACCESS_DENIED:
+        backdrop_add_http_header('Status', '403 Forbidden');
+        watchdog('access denied', check_plain($_GET['q']), NULL, WATCHDOG_WARNING);
+        if (!isset($_GET['destination'])) {
+          if (!url_is_external($_GET['q'])) {
+            $_GET['destination'] = $_GET['q'];
+          }
+        }
+        $path = backdrop_get_normal_path($site_config->get('site_403'));
+        if (empty($path)) {
+          $path = 'system/403';
+        }
+        menu_set_active_item($path);
+        $page_callback_result = menu_execute_active_handler($path, FALSE);
+        break;
+
+      case MENU_SITE_OFFLINE:
+        backdrop_add_http_header('Status', '503 Service unavailable');
+        $page_callback_result = backdrop_site_offline();
+        break;
+    }
+
+    if (empty($page_callback_result)) {
+      return;
+    }
+  }
+
+  if (isset($page_callback_result)) {
+    // Render the page content. render() handles both render arrays and strings.
+    $rendered = render($page_callback_result);
+
+    // Render page.tpl.php with the content.
+    $page_content = theme('page', array('page' => $rendered));
+
+    // Wrap in html.tpl.php — D7's outer template wrapper.
+    $html_output = theme('html', array('page' => $page_content));
+
+    print $html_output;
+  }
+
+  backdrop_page_footer();
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ *
+ * When a D7 theme is active:
+ * 1. Redirects core template paths to D7 equivalents
+ * 2. Injects setup/flatten functions into preprocess chains
+ * 3. Registers the 'html' theme hook (removed in Backdrop)
+ */
+function d7_theme_compat_theme_registry_alter(&$registry) {
+  if (!_d7_theme_compat_is_d7_theme()) {
+    return;
+  }
+
+  // Step 1: Redirect core templates to D7 equivalents.
+  $template_map = _d7_theme_compat_get_template_map();
+  foreach ($template_map as $hook => $d7_path) {
+    if (isset($registry[$hook]) && is_dir(BACKDROP_ROOT . '/' . $d7_path)) {
+      // Only redirect if the D7 theme doesn't provide its own override.
+      $d7_theme_path = _d7_theme_compat_get_d7_theme_path();
+      if ($d7_theme_path && isset($registry[$hook]['path']) &&
+          strpos($registry[$hook]['path'], $d7_theme_path) === 0) {
+        // Theme provides its own template — don't redirect.
+        continue;
+      }
+      $registry[$hook]['path'] = $d7_path;
+
+      // Backdrop's registry may store templates with full subdirectory paths
+      // (e.g. 'core/modules/user/templates/user-picture'). Since our D7
+      // templates are in a flat directory, strip any directory components
+      // so the include resolves to e.g. 'templates/user-picture.tpl.php'.
+      if (isset($registry[$hook]['template']) && strpos($registry[$hook]['template'], '/') !== FALSE) {
+        $registry[$hook]['template'] = basename($registry[$hook]['template']);
+      }
+    }
+  }
+
+  // Determine which templates are D7 (either redirected to our module's
+  // templates/ dir or from the D7 theme itself). Only these get the flatten
+  // function. Backdrop-native templates (Views, Layout, etc.) are left alone.
+  $d7_theme_path = _d7_theme_compat_get_d7_theme_path();
+  $module_tpl_path = backdrop_get_path('module', 'd7_theme_compat') . '/templates';
+
+  // Step 2: Inject setup and flatten functions into preprocess chains.
+  foreach ($registry as $hook => &$info) {
+    if (!isset($info['preprocess functions'])) {
+      continue;
+    }
+
+    // Early: create D7-style *_array variables from Backdrop arrays.
+    array_unshift($info['preprocess functions'], '_d7_theme_compat_setup_variables');
+
+    // Determine if this hook uses a D7 template.
+    $is_d7_template = FALSE;
+    if (isset($info['path'])) {
+      // Template was redirected to our module's D7 templates.
+      if (strpos($info['path'], $module_tpl_path) === 0) {
+        $is_d7_template = TRUE;
+      }
+      // Template comes from the D7 theme itself.
+      if ($d7_theme_path && strpos($info['path'], $d7_theme_path) === 0) {
+        $is_d7_template = TRUE;
+      }
+    }
+
+    // Late: flatten arrays to strings, but ONLY for D7 templates.
+    // Theme functions (like theme_image) and Backdrop-native templates
+    // (Views, Layout, etc.) must not be flattened.
+    if ($is_d7_template && (isset($info['template']) || !isset($info['function']))) {
+      $info['preprocess functions'][] = '_d7_theme_compat_flatten_variables';
+    }
+  }
+
+  // Step 3: Ensure the 'html' hook exists in the registry.
+  // Backdrop removed html.tpl.php, so the 'html' hook may not be registered.
+  if (!isset($registry['html']) && isset($template_map['html'])) {
+    $registry['html'] = array(
+      'template' => 'html',
+      'path' => $template_map['html'],
+      'type' => 'module',
+      'theme path' => backdrop_get_path('module', 'd7_theme_compat'),
+      'variables' => array('page' => NULL),
+      'preprocess functions' => array(
+        '_d7_theme_compat_setup_variables',
+        '_d7_theme_compat_preprocess_html',
+        '_d7_theme_compat_flatten_variables',
+      ),
+    );
+  }
+}
+
+/**
+ * Implements hook_preprocess_page().
+ *
+ * Populates D7-style page variables that Backdrop's template_preprocess_page()
+ * no longer provides. This is the heart of the D7 compatibility layer.
+ *
+ * Reference: D7's template_preprocess_page() at drupal/includes/theme.inc:2677
+ * and template_process_page() at drupal/includes/theme.inc:2731.
+ */
+function d7_theme_compat_preprocess_page(&$variables) {
+  if (!_d7_theme_compat_is_d7_theme()) {
+    return;
+  }
+
+  $site_config = config('system.core');
+
+  // Save the rendered page content. With Layout suppressed, the page callback
+  // result arrives as a render array or string. D7 themes expect $page to be
+  // an array of region render arrays, with the main content in $page['content'].
+  $rendered_content = '';
+  if (isset($variables['page']) && is_string($variables['page'])) {
+    $rendered_content = $variables['page'];
+  }
+
+  // Re-initialize $page as array of regions.
+  $variables['page'] = array();
+
+  // Populate region arrays from the theme's declared regions.
+  // D7 reference: theme.inc:2681-2688
+  global $theme;
+  $themes = list_themes();
+  if (isset($themes[$theme]->info['regions'])) {
+    foreach ($themes[$theme]->info['regions'] as $region_key => $region_name) {
+      if (!isset($variables['page'][$region_key])) {
+        $variables['page'][$region_key] = array();
+      }
+    }
+  }
+
+  // Place the rendered page content into the 'content' region.
+  if ($rendered_content) {
+    $variables['page']['content'] = array(
+      '#markup' => $rendered_content,
+    );
+  }
+
+  // Site identity variables.
+  // D7 reference: theme.inc:2699-2709
+  $variables['base_path'] = base_path();
+  $variables['front_page'] = url();
+  $variables['feed_icons'] = '';
+
+  // D7 templates use $language->language; Backdrop uses $language->langcode.
+  $variables['language'] = clone $GLOBALS['language'];
+  if (!isset($variables['language']->language) && isset($variables['language']->langcode)) {
+    $variables['language']->language = $variables['language']->langcode;
+  }
+  if (!isset($variables['language']->dir)) {
+    $variables['language']->dir = $GLOBALS['language']->direction ? 'rtl' : 'ltr';
+  }
+
+  // Logo.
+  $variables['logo'] = theme_get_setting('logo');
+
+  // Site name and slogan.
+  $variables['site_name'] = (theme_get_setting('toggle_name') ? check_plain($site_config->getTranslated('site_name')) : '');
+  $variables['site_slogan'] = (theme_get_setting('toggle_slogan') ? check_plain($site_config->getTranslated('site_slogan')) : '');
+
+  // Navigation menus.
+  if (function_exists('menu_main_menu')) {
+    $variables['main_menu'] = theme_get_setting('toggle_main_menu') ? menu_main_menu() : array();
+  }
+  else {
+    $variables['main_menu'] = array();
+  }
+  if (function_exists('menu_secondary_menu')) {
+    $variables['secondary_menu'] = theme_get_setting('toggle_secondary_menu') ? menu_secondary_menu() : array();
+  }
+  else {
+    $variables['secondary_menu'] = array();
+  }
+
+  // Page elements.
+  $variables['action_links'] = menu_local_actions();
+  $variables['tabs'] = menu_local_tabs();
+
+  // Layout variable (sidebar detection).
+  // D7 reference: theme.inc:2691-2697
+  $variables['layout'] = 'none';
+  if (!empty($variables['page']['sidebar_first'])) {
+    $variables['layout'] = 'first';
+  }
+  if (!empty($variables['page']['sidebar_second'])) {
+    $variables['layout'] = ($variables['layout'] == 'first') ? 'both' : 'second';
+  }
+
+  // Node object if on a node page.
+  if ($node = menu_get_object()) {
+    $variables['node'] = $node;
+  }
+
+  // Theme hook suggestions from path.
+  if ($suggestions = theme_get_suggestions(arg(), 'page')) {
+    $variables['theme_hook_suggestions'] = $suggestions;
+  }
+
+  // Variables normally set in D7's template_process_page() (theme.inc:2731).
+  // We set them here since Backdrop has no process layer.
+  if (!isset($variables['breadcrumb'])) {
+    $variables['breadcrumb'] = theme('breadcrumb', array('breadcrumb' => backdrop_get_breadcrumb()));
+  }
+  if (!isset($variables['title'])) {
+    $variables['title'] = backdrop_get_title();
+  }
+  if (!isset($variables['messages'])) {
+    $show_messages = isset($variables['page']['#show_messages']) ? $variables['page']['#show_messages'] : TRUE;
+    $variables['messages'] = $show_messages ? theme('status_messages') : '';
+  }
+}
+
+/**
+ * Preprocess function for the 'html' theme hook.
+ *
+ * Since Backdrop removed html.tpl.php, we re-register the hook and need to
+ * populate its variables. Reference: D7's template_preprocess_html()
+ * at drupal/includes/theme.inc:2584 and template_process_html() at :2760.
+ */
+function _d7_theme_compat_preprocess_html(&$variables) {
+  // Body classes and attributes.
+  $variables['classes_array'] = array();
+  $variables['attributes_array'] = array();
+  $variables['attributes'] = '';
+
+  // Front page class.
+  $variables['is_front'] = backdrop_is_front_page();
+  $variables['classes_array'][] = $variables['is_front'] ? 'front' : 'not-front';
+
+  // Logged in class.
+  $variables['logged_in'] = (bool) $GLOBALS['user']->uid;
+  $variables['classes_array'][] = $variables['logged_in'] ? 'logged-in' : 'not-logged-in';
+
+  // Page path classes.
+  if ($suggestions = theme_get_suggestions(arg(), 'page', '-')) {
+    foreach ($suggestions as $suggestion) {
+      if ($suggestion != 'page-front') {
+        $variables['classes_array'][] = backdrop_html_class($suggestion);
+      }
+    }
+  }
+
+  // Node type class.
+  if ($node = menu_get_object()) {
+    $variables['classes_array'][] = backdrop_html_class('node-type-' . $node->type);
+  }
+
+  // Language and direction.
+  // D7 templates use $language->language; Backdrop uses $language->langcode.
+  $variables['language'] = clone $GLOBALS['language'];
+  if (!isset($variables['language']->language) && isset($variables['language']->langcode)) {
+    $variables['language']->language = $variables['language']->langcode;
+  }
+  if (!isset($variables['language']->dir)) {
+    $variables['language']->dir = $GLOBALS['language']->direction ? 'rtl' : 'ltr';
+  }
+
+  // RDF namespaces (provide empty string if RDF module not present).
+  $variables['rdf_namespaces'] = '';
+  if (function_exists('drupal_get_rdf_namespaces')) {
+    $variables['rdf_namespaces'] = drupal_get_rdf_namespaces();
+  }
+  elseif (function_exists('backdrop_get_rdf_namespaces')) {
+    $variables['rdf_namespaces'] = backdrop_get_rdf_namespaces();
+  }
+
+  $variables['grddl_profile'] = 'http://www.w3.org/1999/xhtml/vocab';
+
+  // Head title.
+  $site_config = config('system.core');
+  if (backdrop_get_title()) {
+    $head_title = array(
+      'title' => strip_tags(backdrop_get_title()),
+      'name' => check_plain($site_config->getTranslated('site_name')),
+    );
+  }
+  else {
+    $head_title = array('name' => check_plain($site_config->getTranslated('site_name')));
+    if ($slogan = $site_config->getTranslated('site_slogan')) {
+      $head_title['slogan'] = check_plain($slogan);
+    }
+  }
+  $variables['head_title_array'] = $head_title;
+  $variables['head_title'] = implode(' | ', $head_title);
+
+  // Variables from D7's template_process_html() (theme.inc:2760).
+  // These are normally set in the process layer which Backdrop removed.
+  $variables['head'] = backdrop_get_html_head();
+  $variables['styles'] = backdrop_get_css();
+  $variables['scripts'] = backdrop_get_js();
+  $variables['page_top'] = '';
+  $variables['page_bottom'] = backdrop_get_js('footer');
+}
+
+// ============================================================================
+// Helper functions
+// ============================================================================
+
+/**
+ * Check if the currently active theme is a D7 theme.
+ *
+ * Uses backdrop_static() for caching. Returns FALSE if the theme global isn't
+ * initialized yet (e.g., during hook_init).
+ */
+function _d7_theme_compat_is_d7_theme() {
+  $is_d7 = &backdrop_static(__FUNCTION__);
+  if (!isset($is_d7)) {
+    global $theme;
+    if (empty($theme)) {
+      return FALSE;
+    }
+    $themes = list_themes();
+    $is_d7 = isset($themes[$theme]->info['core']) && $themes[$theme]->info['core'] == '7.x';
+  }
+  return $is_d7;
+}
+
+/**
+ * Get the filesystem path of the active D7 theme, if any.
+ */
+function _d7_theme_compat_get_d7_theme_path() {
+  global $theme;
+  if (!$theme) {
+    return FALSE;
+  }
+  $themes = list_themes();
+  if (isset($themes[$theme]->info['core']) && $themes[$theme]->info['core'] == '7.x') {
+    return dirname($themes[$theme]->uri);
+  }
+  return FALSE;
+}
+
+/**
+ * Early preprocess: create D7-style *_array variables from Backdrop's arrays.
+ *
+ * D7 preprocess functions (e.g. bartik_preprocess_html) expect to manipulate
+ * $variables['classes_array']. Backdrop only provides $variables['classes']
+ * as an array. This bridges the gap.
+ */
+function _d7_theme_compat_setup_variables(&$variables) {
+  if (!_d7_theme_compat_is_d7_theme()) {
+    return;
+  }
+
+  // D7 templates expect these variables to always exist. Ensure they are
+  // initialized even if Backdrop's preprocess functions didn't set them.
+  // Each has an *_array form (for preprocess manipulation) and a flat form
+  // (string, for template output). The flatten function converts arrays to
+  // strings later in the preprocess chain.
+
+  // classes / classes_array
+  if (isset($variables['classes']) && is_array($variables['classes'])) {
+    if (!isset($variables['classes_array'])) {
+      $variables['classes_array'] = $variables['classes'];
+    }
+  }
+  elseif (!isset($variables['classes_array'])) {
+    $variables['classes_array'] = array();
+  }
+
+  // attributes / attributes_array
+  if (isset($variables['attributes']) && is_array($variables['attributes'])) {
+    if (!isset($variables['attributes_array'])) {
+      $variables['attributes_array'] = $variables['attributes'];
+    }
+  }
+  elseif (!isset($variables['attributes_array'])) {
+    $variables['attributes_array'] = array();
+  }
+
+  // title_attributes / title_attributes_array
+  if (isset($variables['title_attributes']) && is_array($variables['title_attributes'])) {
+    if (!isset($variables['title_attributes_array'])) {
+      $variables['title_attributes_array'] = $variables['title_attributes'];
+    }
+  }
+  elseif (!isset($variables['title_attributes_array'])) {
+    $variables['title_attributes_array'] = array();
+  }
+
+  // content_attributes / content_attributes_array
+  if (isset($variables['content_attributes']) && is_array($variables['content_attributes'])) {
+    if (!isset($variables['content_attributes_array'])) {
+      $variables['content_attributes_array'] = $variables['content_attributes'];
+    }
+  }
+  elseif (!isset($variables['content_attributes_array'])) {
+    $variables['content_attributes_array'] = array();
+  }
+}
+
+/**
+ * Late preprocess: flatten D7-style arrays to strings for templates.
+ *
+ * Replicates what D7's template_process() did at theme.inc:2565.
+ * Only runs for D7 templates (determined in hook_theme_registry_alter).
+ */
+function _d7_theme_compat_flatten_variables(&$variables) {
+  if (!_d7_theme_compat_is_d7_theme()) {
+    return;
+  }
+
+  // Flatten classes_array to $classes string.
+  // D7 reference: template_process() at theme.inc:2565
+  if (isset($variables['classes_array'])) {
+    $variables['classes'] = implode(' ', $variables['classes_array']);
+  }
+  elseif (isset($variables['classes']) && is_array($variables['classes'])) {
+    $variables['classes'] = implode(' ', $variables['classes']);
+  }
+
+  // Flatten attributes_array, title_attributes_array, content_attributes_array.
+  // Each maps to a string variable used in D7 templates (e.g. $attributes,
+  // $title_attributes, $content_attributes). Empty arrays must produce empty
+  // strings so templates don't get undefined variable warnings.
+  $attribute_types = array('attributes', 'title_attributes', 'content_attributes');
+  foreach ($attribute_types as $attr) {
+    $array_key = $attr . '_array';
+    if (isset($variables[$array_key])) {
+      // Array exists (possibly from setup or preprocess) — flatten it.
+      $variables[$attr] = !empty($variables[$array_key])
+        ? backdrop_attributes($variables[$array_key])
+        : '';
+    }
+    elseif (isset($variables[$attr]) && is_array($variables[$attr])) {
+      // Backdrop-style array — flatten it.
+      $variables[$attr] = !empty($variables[$attr])
+        ? backdrop_attributes($variables[$attr])
+        : '';
+    }
+    elseif (!isset($variables[$attr])) {
+      // Variable doesn't exist at all — set to empty string.
+      $variables[$attr] = '';
+    }
+  }
+}
