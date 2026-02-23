@@ -1,0 +1,5 @@
+name = Theme Menu Block
+description = Provides a block with links to switch the default theme.
+type = module
+backdrop = 1.x
+package = Development
