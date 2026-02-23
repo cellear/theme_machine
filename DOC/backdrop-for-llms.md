@@ -6,12 +6,14 @@ differences.
 
 ## Development Environment
 
-This project uses **ddev** for local development.
+This project uses **ddev** for local development. The ddev project lives
+inside the `backdrop/` directory (i.e., `backdrop/.ddev/`).
 
 - Site URL: `https://theme-machine.ddev.site/`
 - PHP 8.3
-- Backdrop root inside ddev container: `/var/www/html/backdrop`
+- Backdrop root inside ddev container: `/var/www/html`
 - Local Backdrop root: `backdrop/` (relative to project root)
+- **Run `ddev` commands from the `backdrop/` directory** (or use `cd backdrop &&` prefix)
 
 ### Bee (Backdrop CLI tool)
 
@@ -54,7 +56,7 @@ ddev bee config-get <file> <key>  # Read a config value
 - D7 page templates may rely on `$show_messages`; compatibility preprocess should
   always set it (boolean), then derive `$messages` from that flag.
 - Verified with current compat layer on node pages: `bartik_d7`, `garland_d7`,
-  `bluebreeze_fixed`, `simpleclean`, `talata`, `clean_theme`, `classic_blog`.
+  `bluebreeze`, `simpleclean`, `talata`, `clean_theme`, `classic_blog`.
 
 ### Layout Module (Backdrop-only)
 - Replaces D7's block-to-region system for page structure
@@ -147,7 +149,7 @@ key is what matters for compatibility.
   including template files (see `theme.inc:1584`).
 - Template paths in the registry must be RELATIVE to `BACKDROP_ROOT`.
 - Using absolute paths causes doubled paths like
-  `/var/www/html/backdrop//var/www/html/backdrop/../drupal/...`
+  `/var/www/html//var/www/html/../drupal/...`
 - D7 templates are shipped inside `d7_theme_compat/templates/` (not
   referenced from outside the Backdrop root).
 - **CRITICAL**: Backdrop's registry may store the `template` key with full
@@ -185,7 +187,8 @@ key is what matters for compatibility.
 
 ```
 THEME-MACHINE/
-  backdrop/                          # Backdrop CMS install
+  backdrop/                          # Backdrop CMS install (ddev root)
+    .ddev/                           # ddev config (moved here from project root)
     core/                            # Backdrop core
       includes/theme.inc             # Theme engine
       includes/common.inc            # backdrop_render_page(), etc.
@@ -196,14 +199,18 @@ THEME-MACHINE/
     modules/                         # Custom/contrib modules
       d7_theme_compat/               # OUR MODULE
         templates/                   # D7 core templates (copied, not referenced)
-    themes/                          # Custom themes
-      bartik_d7/                     # D7 Bartik (test subject)
-  drupal/                            # Stock Drupal 7.103 install
-    includes/theme.inc               # D7 theme engine (reference)
-    modules/system/                  # D7 core templates (html.tpl.php, page.tpl.php, etc.)
-    themes/bartik/                   # D7 Bartik (source)
+    themes/                          # Custom/D7 themes
+      bartik_d7/                     # D7 Bartik (renamed — name collision)
+      garland_d7/                    # D7 Garland (renamed — name collision)
+      bluebreeze/                    # D7 Bluebreeze (unmodified)
+      simpleclean/                   # D7 Simple Clean (unmodified)
+      talata/                        # D7 Talata (unmodified)
+      clean_theme/                   # D7 Clean Theme (unmodified)
+      classic_blog/                  # D7 Classic Blog (unmodified)
+  drupal/                            # Stock Drupal 7.103 install (has its own ddev)
+  INCOMING/                          # Raw theme clones for triage (not in git)
   DOC/                               # Persistent reference docs
   HANDOFF/                           # Session journals
 ```
 
-Last updated: 2026-02-23 by codex (session 6: added $show_messages compat note and expanded tested-theme list)
+Last updated: 2026-02-22 by claude (ddev moved to backdrop/, updated paths and theme list)
