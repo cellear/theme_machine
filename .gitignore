@@ -4,8 +4,9 @@
 # Local dev environment
 .ddev/
 
-# Reference Drupal 7 install (not part of the project)
+# Reference Drupal 7 installs (not part of the project)
 drupal/
+drupal-7/
 
 # Backdrop site data (config, uploads, private files)
 backdrop/files/
