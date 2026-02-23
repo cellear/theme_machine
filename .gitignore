@@ -19,3 +19,12 @@ Notes/
 
 # Agent handoff protocol source (upstream repo)
 agent-handoff/
+
+# Incoming theme clones (raw downloads, not part of Backdrop install)
+INCOMING/
+
+# Misc files
+Context.docx
+
+# Backdrop's original git metadata (renamed to avoid submodule behavior)
+backdrop/.git.original/

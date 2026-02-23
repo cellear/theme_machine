@@ -422,9 +422,10 @@ function d7_theme_compat_preprocess_page(&$variables) {
   if (!isset($variables['title'])) {
     $variables['title'] = backdrop_get_title();
   }
+  // D7 page templates may check $show_messages before printing $messages.
+  $variables['show_messages'] = isset($variables['page']['#show_messages']) ? $variables['page']['#show_messages'] : TRUE;
   if (!isset($variables['messages'])) {
-    $show_messages = isset($variables['page']['#show_messages']) ? $variables['page']['#show_messages'] : TRUE;
-    $variables['messages'] = $show_messages ? theme('status_messages') : '';
+    $variables['messages'] = $variables['show_messages'] ? theme('status_messages') : '';
   }
 }
 

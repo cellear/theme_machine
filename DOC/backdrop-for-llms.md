@@ -51,6 +51,10 @@ ddev bee config-get <file> <key>  # Read a config value
 - D7 `$classes` = string. Backdrop `$classes` = array (use `implode(' ', $classes)`)
 - D7 `$attributes` = string. Backdrop `$attributes` = array (use `backdrop_attributes()`)
 - D7 has `$classes_array` for manipulation. Backdrop just uses `$classes` directly.
+- D7 page templates may rely on `$show_messages`; compatibility preprocess should
+  always set it (boolean), then derive `$messages` from that flag.
+- Verified with current compat layer on node pages: `bartik_d7`, `garland_d7`,
+  `bluebreeze_fixed`, `simpleclean`, `talata`, `clean_theme`, `classic_blog`.
 
 ### Layout Module (Backdrop-only)
 - Replaces D7's block-to-region system for page structure
@@ -202,4 +206,4 @@ THEME-MACHINE/
   HANDOFF/                           # Session journals
 ```
 
-Last updated: 2026-02-22 by claude (session 3: template key basename fix, local template approach)
+Last updated: 2026-02-23 by codex (session 6: added $show_messages compat note and expanded tested-theme list)
