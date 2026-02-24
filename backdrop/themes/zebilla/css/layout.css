@@ -1,0 +1,210 @@
+/**===================================================================
+
+  Developed By: Samuel Ayela
+  Company: Rocom Solutions
+  Website: http://www.rocomsolutions.com/
+  
+\------------------------------------------------------------------**/
+
+/** Page layout **/
+
+#page{
+  background:url(../images/transparent.png) repeat;
+  width: 990px;
+  margin: 25px auto;
+  padding:0;
+  -khtml-border-radius: 8px;
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
+  border-radius: 8px;  
+  font-size: 14px;  
+  }
+
+#container{
+  width: 960px;
+  padding:0;
+  margin:0 auto;
+}
+
+.page-inner{
+  padding:15px;
+}   
+  
+/** Header **/
+
+#header{
+  background:#fff;
+  padding:15px;
+  clear:both;
+  margin-bottom: 15px;
+  -khtml-border-radius: 8px;
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
+  border-radius: 8px;    
+  }
+
+#site-messages{
+  width: 960px;
+  margin:0 auto;
+  padding:0;
+  clear:both;
+  }  
+  
+#header-blocks{
+  clear: both;
+  }
+  
+#logo{
+  width:90px;
+  margin-right:20px;
+  padding:0;  
+  float: left;
+}
+
+#site-details{
+  width:420px;
+  margin:0;
+  margin-top:0;
+  float:left;
+} 
+
+#social-icons{
+  width:330px;
+  margin:0;
+  margin-top:0;
+  float:right;
+}
+
+#site-search{
+  width:300px;
+  margin-left:30px;
+  margin-top:15px;
+  float:right;
+  text-align:right;
+} 
+
+/** Content layout **/
+
+#content-wrap{
+  margin: 0 auto;
+  background: none;  
+  width: 960px;
+  padding:0;
+  line-height:1.6em;
+  clear:both;
+  -khtml-border-radius: 8px;
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
+  border-radius: 8px;    
+  }
+ 
+.no-sidebars #content{
+  width: 930px;
+  background:#fff;
+  padding:15px;
+  clear:both;
+  margin: 0;
+  -khtml-border-radius: 8px;
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
+  border-radius: 8px;  
+  }
+
+#content .section{
+  margin:0;
+  padding:0;
+  text-align: left;
+}
+ 
+.sidebar-first #content,
+.sidebar-second #content{
+  background:#fff; 
+  width: 585px;
+  padding:15px;
+  float:left;
+   -khtml-border-radius: 8px;
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
+  border-radius: 8px; 
+  }
+ 
+.sidebar-second #content{
+  margin-right:15px;
+  }
+
+.sidebar-first #content{
+  margin-left:15px;
+  }  
+  
+.sidebar-first #sidebar-first,
+.sidebar-second  #sidebar-second{
+  float: left;
+  width: 330px;
+  margin:0;
+  padding: 0;
+  -khtml-border-radius: 8px;
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
+  border-radius: 8px;  
+  }
+  
+.two-sidebars #content{
+  background:#fff;
+  width: 460px;
+  float:left;
+  margin:0;
+  padding:15px;
+  float:left;
+   -khtml-border-radius: 8px;
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
+  border-radius: 8px; 
+  }
+  
+.two-sidebars #sidebar-first{
+  float: left;
+  width: 190px;
+  margin: 0;
+  padding: 0;
+  }
+
+.two-sidebars #sidebar-second{
+  float: left;
+  width: 250px;
+  margin:0;
+  padding: 0;
+  }
+
+.two-sidebars #content{
+  margin:0 15px;
+  }  
+  
+.region-sidebar-first .content,
+.region-sidebar-second .content{
+  border:0px solid #A3CBDC;
+  margin:0;
+  padding:0px;
+  font-size:12px;
+  text-align:left;
+ }
+
+.region-sidebar-first .block,
+.region-sidebar-second .block{
+  background:#fff;
+  margin-bottom:15px;
+  padding: 15px;
+  -khtml-border-radius: 8px;
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
+  border-radius: 8px;  
+  } 
+
+/** Footer **/
+
+#footer{
+  width:990px;
+  clear:both;
+  margin:0 auto;
+  padding:0;
+}
+

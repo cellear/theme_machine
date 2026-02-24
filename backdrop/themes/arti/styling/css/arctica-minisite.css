@@ -1,0 +1,57 @@
+/**
+Auxiliary stylesheet for Arctica minisite on top of Arti by www.SooperThemes.com
+Author: Jurriaan Roelofs
+
+TABLE OF CONTENTS:
+1. Custom Content Styling
+
+*/
+/**
+ * [ 1 ] CUSTOM CONTENT STYLINH
+ */
+@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/quickstart\/websites\/themebox7\.dev\/sites\/all\/themes\/arti\/styling\/scss\/arctica-minisite\.scss}line{font-family:\0000314}}
+#block-block-2 img {
+  padding-top: 7px;
+}
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/quickstart\/websites\/themebox7\.dev\/sites\/all\/themes\/arti\/styling\/scss\/arctica-minisite\.scss}line{font-family:\0000318}}
+#block-block-1 h3.voice2 {
+  font-size: 195%;
+  text-align: Center;
+}
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/quickstart\/websites\/themebox7\.dev\/sites\/all\/themes\/arti\/styling\/scss\/arctica-minisite\.scss}line{font-family:\0000323}}
+.region-postblocks .grid-inner {
+  background: #54beff;
+  font-size: 300%;
+  color: #fff;
+}
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/quickstart\/websites\/themebox7\.dev\/sites\/all\/themes\/arti\/styling\/scss\/arctica-minisite\.scss}line{font-family:\0000329}}
+.region-postblocks .grid-inner a {
+  text-decoration: none;
+  font-weight: Bold;
+  padding: 60px 0;
+  display: block;
+  text-align: center;
+  color: #fff;
+  width: 100%;
+  line-height: 1.2em;
+  -moz-transition: background-color 500ms;
+  -webkit-transition: background-color 500ms;
+  -o-transition: background-color 500ms;
+  transition: background-color 500ms;
+}
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/quickstart\/websites\/themebox7\.dev\/sites\/all\/themes\/arti\/styling\/scss\/arctica-minisite\.scss}line{font-family:\0000345}}
+.region-postblocks .grid-inner a:hover,
+.region-postblocks .grid-inner a:focus {
+  background: #000;
+}
+
+@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/quickstart\/websites\/themebox7\.dev\/sites\/all\/themes\/arti\/styling\/scss\/arctica-minisite\.scss}line{font-family:\0000349}}
+.contextual-links-wrapper a {
+  font-size: 11px!important;
+  padding: 0!important;
+  text-align: left!important;
+}

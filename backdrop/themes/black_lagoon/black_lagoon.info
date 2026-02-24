@@ -1,0 +1,42 @@
+name = Black Lagoon
+description = Black Lagoon is a fun theme with 3-column layout and a featured slide-show..
+screenshot = screenshot.jpg
+core = 7.x
+scripts[] = js/custom.js
+
+scripts[] = js/jquery.orbit.js
+scripts[] = js/app.js
+scripts[] = js/jquery.placeholder.min.js
+scripts[] = js/jquery.reveal.js
+scripts[] = js/jquery.tooltips.js
+scripts[] = js/modernizr.foundation.js
+
+scripts[] = js/menu.js
+scripts[] = js/mobilemenu.js
+scripts[] = js/modernizr.js
+
+
+stylesheets[all][] = css/style.css
+stylesheets[all][] = css/layout.css
+stylesheets[all][] = css/foundation.css
+
+
+settings[default_banners][1][image_path]      = images/slideshows/1.jpg
+settings[default_banners][1][image_url]       = Url for image 1
+
+settings[default_banners][2][image_path]      = images/slideshows/2.jpg
+settings[default_banners][2][image_url]       = Url for image 2
+
+settings[default_banners][3][image_path]      = images/slideshows/3.jpg
+settings[default_banners][3][image_url]       = Url for image 3
+
+
+regions[mainmenu] = Main Menu
+regions[slider] = Slider
+regions[content] = Content
+regions[sidebar_first] = Sidebar first
+regions[sidebar_second] = Sidebar second
+regions[footer_first] = Footer first column
+regions[footer_second] = Footer second column
+regions[footer_third] = Footer third column
+regions[footer] = Footer

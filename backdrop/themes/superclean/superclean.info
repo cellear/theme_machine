@@ -1,0 +1,10 @@
+name = SuperClean
+description = A two column standards-based layout with clean design and markup which is well commented.
+version = 1.0
+core = 6.x
+engine = phptemplate
+
+regions[left] = Left sidebar
+regions[content] = Content
+regions[content_top] = Content Top
+regions[footer] = Footer

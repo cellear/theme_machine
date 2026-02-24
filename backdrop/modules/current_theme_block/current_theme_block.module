@@ -1,0 +1,53 @@
+<?php
+
+/**
+ * @file
+ * Provides a block that shows the current active theme.
+ */
+
+/**
+ * Implements hook_block_info().
+ */
+function current_theme_block_block_info() {
+  $blocks = array();
+
+  $blocks['current_theme'] = array(
+    'info' => t('Current theme'),
+    'description' => t('Displays the active and default theme names.'),
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function current_theme_block_block_view($delta = '', $settings = array(), $contexts = array()) {
+  if ($delta !== 'current_theme') {
+    return;
+  }
+
+  $themes = list_themes();
+  $active_theme = !empty($GLOBALS['theme']) ? $GLOBALS['theme'] : config_get('system.core', 'theme_default');
+  $default_theme = config_get('system.core', 'theme_default');
+
+  $active_name = isset($themes[$active_theme]->info['name']) ? $themes[$active_theme]->info['name'] : $active_theme;
+  $default_name = isset($themes[$default_theme]->info['name']) ? $themes[$default_theme]->info['name'] : $default_theme;
+
+  $items = array(
+    t('Active: @name (@machine)', array('@name' => $active_name, '@machine' => $active_theme)),
+  );
+
+  if ($default_theme !== $active_theme) {
+    $items[] = t('Default: @name (@machine)', array('@name' => $default_name, '@machine' => $default_theme));
+  }
+
+  $block = array();
+  $block['subject'] = t('Current theme');
+  $block['content'] = array(
+    '#theme' => 'item_list',
+    '#items' => $items,
+  );
+
+  return $block;
+}

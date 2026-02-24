@@ -1,0 +1,15 @@
+name = icandy
+description = Theme ported by <a href="http://www.zyxware.com" >Zyxware </a> .
+core = 7.x
+
+stylesheets[all][] = css/style.css
+stylesheets[all][] = css/dropdown.css
+scripts[]          = js/admin.js
+scripts[]          = js/candytheme.js
+scripts[]          = js/dropdown.js
+scripts[]          = js/jscolor/jscolor.js
+
+regions[sidebar_first]   = Sidebar
+regions[content]         = Content
+regions[search_box]      = Search box
+regions[footer]          = Footer

@@ -1,0 +1,3 @@
+(function($) {
+    /* ADD JAVASCRIPT HERE */
+});

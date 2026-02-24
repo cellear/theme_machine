@@ -1,0 +1,51 @@
+theme	action	reason	http	new_php_errors
+nigraphic	PASS		200	0
+colorfulness_theme	PASS		200	0
+basic	SKIP	twig_or_info_yml		
+bluefreedom3	PASS		200	0
+dessert	SKIP	core_6x_deprioritized		
+energetic	SKIP	core_6x_deprioritized		
+ishalist	SKIP	core_6x_deprioritized		
+simpler	PASS		200	0
+floater	SKIP	no_info_file		
+redsalute	FAIL	http_500	500	10
+templist	FAIL	http_500	500	ParseError: syntax error, unexpected token &quot;*&quot;, expecting end of file in theme_render_templat 
+shakennotstirred	FAIL	http_500	500	ParseError: syntax error, unexpected token &quot;*&quot;, expecting end of file in theme_render_templat 
+jq_theme	PASS		200	
+icandy	PASS		200	
+bartik_fb	PASS		200	
+academia	PASS		200	
+b2_drupal_plus	PASS		200	
+profolio	SKIP	no_info_file		
+fold	PASS		200	
+plasma	PASS		200	
+arti	PASS		200	
+parish_theme	PASS		200	
+touch	PASS		200	
+adaptic	PASS		200	
+zebilla	PASS		200	
+hiya	SKIP	no_info_file		
+sankofa	PASS		200	
+mfirst	PASS		200	
+havasu	PASS		200	
+black_lagoon	FAIL	http_500	500	TypeError: file_copy(): Argument #1 ($source) must be of type File, stdClass given, called in /var/www/ 
+lightword	PASS		200	
+elegant_blue	PASS		200	
+tarski	PASS		200	
+blank	SKIP	no_info_file		
+fdt_yellow	PASS		200	
+fdt_grey	PASS		200	
+professional_pro	PASS		200	
+biz	PASS		200	
+changeme	PASS		200	
+addari	PASS		200	
+superclean	FAIL	http_500	500	Error: Cannot access private property BlockLegacy::$content in include() (line 7 of /var/www/html/theme 
+fueldeluxe	PASS		200	
+pro	PASS		200	
+modern_theme	PASS		200	
+sirbones	PASS		200	
+adelante	PASS		200	
+themage	PASS		200	
+responsive_green	PASS		200	
+lexi_responsive_theme	PASS		200	
+professional_responsive_theme	PASS		200	

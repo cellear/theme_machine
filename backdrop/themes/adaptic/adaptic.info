@@ -1,0 +1,16 @@
+name        = adaptIC Responsive Theme
+description = Responsive HTML5 theme.
+core        = 7.x
+
+;CSS Styles
+stylesheets[all][]        = css/style.css
+
+;regions
+regions[sidebar_second] = Right Sidebar
+regions[sidebar_first] = Left Sidebar
+regions[navigation]     = Navigation bar
+regions[content]        = Content
+regions[footer]         = Footer
+regions[bottom]         = Page bottom
+regions[page_top]       = Page top
+regions[page_bottom]    = Page bottom

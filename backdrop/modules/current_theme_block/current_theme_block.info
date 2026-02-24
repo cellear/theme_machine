@@ -1,0 +1,5 @@
+name = Current Theme Block
+description = Provides a block that displays the current active theme.
+type = module
+backdrop = 1.x
+package = Development

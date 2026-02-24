@@ -1,0 +1,67 @@
+/* comment and respond */
+div#comments, h2 {
+	font-size:15px;
+	font-weight:normal;
+	color:#2e2e2e;
+	padding-bottom:5px;
+}
+#comments {
+  float:left;
+}
+div#comments div.comment {
+	background:#f4f4f4;
+	clear:both; 
+	display:block;
+	margin-bottom:8px;
+	overflow:hidden;
+	width:540px;
+	border:1px solid #e2e2e2;
+	padding:10px 20px 20px 20px;
+}
+
+.commentlist li .avatar { 
+	float: left;
+	border: 1px solid #eee;
+	padding: 2px;
+	background: #ffffff;
+	margin-right:5px;
+}
+
+.commentlist cite, .commentlist cite a {
+	font-weight: bold;
+	font-style: normal;
+	font-size: 1.1em;
+}
+
+div.comment p {
+	clear:both;
+	line-height: 1.5em;
+}
+
+form#comment-form input, form#comment-form textarea {
+	background:#f4f4f4;
+	color:#4a483d;
+	font:normal 12px Georgia,"Times New Roman","Bitstream Charter",Times,serif;
+	border:1px solid #e2e2e2;
+	padding:7px;
+}
+
+form#comment-form p {
+	margin-bottom:6px;
+}
+
+form#comment-form input.form-submit {
+	background:#d3d3d3;
+	font-size:18px;
+	font-style:italic;
+	color:#2e2e2e;
+	padding:0 6px;
+	height:37px;
+	line-height:37px;
+	border:1px solid #888888;
+	margin-right:10px;
+}
+
+form#comment-form textarea { 
+	width:602px;
+}

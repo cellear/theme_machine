@@ -1,0 +1,32 @@
+
+#name-and-slogan {
+  padding-top: 17px;
+  margin: 0 0 15px 15px;
+}
+
+#main {
+  margin-top: 10px;
+  margin-bottom: 30px;
+}
+
+#main-menu-links {
+  padding: 0 10px;
+}
+
+.breadcrumb {
+  padding-bottom: 0;
+}
+
+.sidebar .block {
+  padding: 10px 15px;
+  margin: 0 0 15px;
+}
+
+#block-search-form {
+  padding-bottom: 0;
+}
+
+#search-form input#edit-keys,
+#block-search-form .form-item-search-block-form input {
+  width: 6em;
+}
