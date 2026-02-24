@@ -1,0 +1,167 @@
+<?php
+
+/**
+ * @file
+ * Rescues blocks from Layout regions that the active D7 theme doesn't declare.
+ *
+ * When using d7_theme_compat, blocks placed in Layout regions like
+ * "sidebar_first" or "highlighted" are silently skipped if the active D7
+ * theme doesn't declare those regions. This module provides a block that
+ * finds those orphaned blocks, renders them, and groups them under their
+ * region names — so nothing gets lost when switching between D7 themes.
+ *
+ * Place the "Lost Regions" block in the content region of your D7 layout.
+ */
+
+/**
+ * Implements hook_block_info().
+ */
+function lost_regions_block_info() {
+  $blocks = array();
+  $blocks['rescue'] = array(
+    'info' => t('Lost Regions'),
+    'description' => t('Renders blocks from Layout regions that the active D7 theme does not support.'),
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function lost_regions_block_view($delta = '', $settings = array(), $contexts = array()) {
+  if ($delta !== 'rescue') {
+    return;
+  }
+
+  // Only act when a D7 theme is active.
+  if (!function_exists('_d7_theme_compat_is_d7_theme') || !_d7_theme_compat_is_d7_theme()) {
+    return;
+  }
+
+  $output = _lost_regions_render_orphaned_blocks();
+  if (empty($output)) {
+    return;
+  }
+
+  $block = array();
+  $block['subject'] = NULL;
+  $block['content'] = array(
+    '#markup' => $output,
+  );
+  return $block;
+}
+
+/**
+ * Find and render blocks from Layout regions the active theme doesn't have.
+ *
+ * Loads the active Layout, compares its regions against the D7 theme's
+ * declared regions, and renders any blocks in regions the theme lacks.
+ * System blocks that duplicate D7 template variables are skipped (same
+ * skip list as d7_theme_compat).
+ *
+ * @return string
+ *   Rendered HTML of orphaned blocks grouped by region, or empty string.
+ */
+function _lost_regions_render_orphaned_blocks() {
+  if (!function_exists('layout_get_layout_by_path')) {
+    return '';
+  }
+
+  $layout = layout_get_layout_by_path();
+  if (!$layout || empty($layout->positions) || empty($layout->content)) {
+    return '';
+  }
+
+  // Get the active D7 theme's declared regions.
+  global $theme;
+  $theme_info = system_get_info('theme', $theme);
+  $theme_regions = isset($theme_info['regions']) ? array_keys($theme_info['regions']) : array();
+
+  // System blocks to skip (same list as d7_theme_compat).
+  $skip_system_deltas = array(
+    'main',
+    'header',
+    'main-menu',
+    'breadcrumb',
+    'page_components',
+  );
+
+  // Collect rendered blocks per missing region.
+  $orphaned = array();
+
+  foreach ($layout->positions as $layout_region => $block_uuids) {
+    // We only care about regions the theme DOESN'T have.
+    if (in_array($layout_region, $theme_regions)) {
+      continue;
+    }
+
+    foreach ($block_uuids as $uuid) {
+      if (!isset($layout->content[$uuid])) {
+        continue;
+      }
+      $block = $layout->content[$uuid];
+
+      // Skip system blocks that duplicate D7 template variables.
+      if ($block->module === 'system' && in_array($block->delta, $skip_system_deltas)) {
+        continue;
+      }
+
+      // Skip this module's own block to prevent recursion.
+      if ($block->module === 'lost_regions') {
+        continue;
+      }
+
+      // Skip disabled blocks.
+      if (isset($block->status) && !$block->status) {
+        continue;
+      }
+
+      $block->prepare();
+      $content = $block->getContent();
+      if (empty($content)) {
+        continue;
+      }
+      if (is_array($content)) {
+        $content = render($content);
+      }
+      if (empty($content)) {
+        continue;
+      }
+
+      // Get block title.
+      $title = '';
+      if (!isset($block->settings['title_display']) || $block->settings['title_display'] !== LAYOUT_TITLE_NONE) {
+        $title = $block->getTitle();
+      }
+
+      // Wrap in D7-style block markup.
+      $block_html_id = backdrop_html_id('block-' . $block->module . '-' . $block->delta);
+      $block_classes = 'block block-' . backdrop_html_class($block->module);
+      $rendered = '<div id="' . $block_html_id . '" class="' . $block_classes . '">';
+      if ($title) {
+        $rendered .= '<h2>' . check_plain($title) . '</h2>';
+      }
+      $rendered .= '<div class="content">' . $content . '</div>';
+      $rendered .= '</div>';
+
+      $orphaned[$layout_region][] = $rendered;
+    }
+  }
+
+  if (empty($orphaned)) {
+    return '';
+  }
+
+  // Build output: each missing region gets a labeled wrapper.
+  $html = '<div class="lost-regions">';
+  foreach ($orphaned as $region_name => $blocks) {
+    $label = ucwords(str_replace('_', ' ', $region_name));
+    $html .= '<div class="lost-region lost-region--' . backdrop_html_class($region_name) . '">';
+    $html .= '<h3 class="lost-region__label">' . check_plain($label) . '</h3>';
+    $html .= implode("\n", $blocks);
+    $html .= '</div>';
+  }
+  $html .= '</div>';
+
+  return $html;
+}

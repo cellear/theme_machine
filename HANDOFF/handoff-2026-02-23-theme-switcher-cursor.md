@@ -14,7 +14,8 @@
 3. User placed the block in a layout region and confirmed it works.
 4. Built `watchdog_tools` module — adds `bee watchdog-clear` and `bee watchdog-count` commands.
 5. Both commands tested and confirmed working.
-6. Staged and committed both modules with DOC files.
+6. Reviewed and committed `lost_regions` module (written by desktop Claude, who ran out of tokens before committing). Added DOC.
+7. Staged and committed all three modules with DOC files.
 
 ## Current project state (as of session start)
 
@@ -35,6 +36,16 @@
 - **Switch path**: `theme-switcher/MACHINE_NAME` — validates token, sets default theme, clears caches, redirects back
 - **Enabled**: yes (via `ddev bee en theme_menu_block`)
 
+## Lost Regions module
+
+- **Location**: `backdrop/modules/lost_regions/`
+- **Files**: `lost_regions.info`, `lost_regions.module`
+- **Author**: desktop Claude (ran out of tokens before commit)
+- **Depends on**: `d7_theme_compat`
+- **Provides**: One block ("Lost Regions") that rescues blocks from Layout regions the active D7 theme doesn't declare
+- **Setup**: Place in the content region; orphaned blocks appear grouped by region name
+- **Enabled**: yes
+
 ## Watchdog Tools module
 
 - **Location**: `backdrop/modules/watchdog_tools/`
@@ -52,8 +63,11 @@
 - `backdrop/modules/watchdog_tools/watchdog_tools.info` (created)
 - `backdrop/modules/watchdog_tools/watchdog_tools.module` (created)
 - `backdrop/modules/watchdog_tools/watchdog_tools.bee.inc` (created)
+- `backdrop/modules/lost_regions/lost_regions.info` (written by desktop Claude, committed by cursor)
+- `backdrop/modules/lost_regions/lost_regions.module` (written by desktop Claude, committed by cursor)
 - `DOC/theme-menu-block.md` (created)
 - `DOC/watchdog-tools.md` (created)
+- `DOC/lost-regions.md` (created)
 - `HANDOFF/handoff-2026-02-23-theme-switcher-cursor.md` (this file)
 
 ## References
@@ -61,4 +75,5 @@
 - `DOC/backdrop-for-llms.md`
 - `DOC/theme-menu-block.md`
 - `DOC/watchdog-tools.md`
+- `DOC/lost-regions.md`
 - `DOC/incoming-theme-triage.md`

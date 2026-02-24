@@ -1,0 +1,6 @@
+name = Lost Regions
+description = Rescues blocks placed in Layout regions that the active D7 theme doesn't declare. Place the block in your content region to catch orphaned sidebar, highlighted, and other missing-region content.
+type = module
+backdrop = 1.x
+package = Theme Machine
+dependencies[] = d7_theme_compat
