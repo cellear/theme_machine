@@ -1,4 +1,4 @@
-# Handoff: Session Review + Theme Switcher Module
+# Handoff: Session Review + Theme Menu Block + Watchdog Tools
 
 **Date**: 2026-02-23
 **Author**: cursor
@@ -12,7 +12,9 @@
 1. Reviewed all prior handoffs and DOC files to establish project state.
 2. Built `theme_menu_block` module — a lightweight Backdrop module that provides a block with an alphabetical list of enabled themes as clickable links to switch the default theme.
 3. User placed the block in a layout region and confirmed it works.
-4. Staged module files into git, created DOC file.
+4. Built `watchdog_tools` module — adds `bee watchdog-clear` and `bee watchdog-count` commands.
+5. Both commands tested and confirmed working.
+6. Staged and committed both modules with DOC files.
 
 ## Current project state (as of session start)
 
@@ -33,15 +35,30 @@
 - **Switch path**: `theme-switcher/MACHINE_NAME` — validates token, sets default theme, clears caches, redirects back
 - **Enabled**: yes (via `ddev bee en theme_menu_block`)
 
+## Watchdog Tools module
+
+- **Location**: `backdrop/modules/watchdog_tools/`
+- **Files**: `watchdog_tools.info`, `watchdog_tools.module`, `watchdog_tools.bee.inc`
+- **Commands**:
+  - `bee watchdog-clear` (aliases: `wc`, `wd-clear`) — truncates the watchdog table
+  - `bee watchdog-count` (aliases: `wcount`, `wd-count`) — shows entry count with optional `--severity` and `--type` filters
+- **Enabled**: yes (via `ddev bee en watchdog_tools`)
+- **How it works**: Bee discovers commands from `.bee.inc` files in enabled modules via `hook_bee_command()`
+
 ## Files created or modified
 
-- `backdrop/modules/theme_menu_block/theme_menu_block.info` (created, staged)
-- `backdrop/modules/theme_menu_block/theme_menu_block.module` (created, staged)
+- `backdrop/modules/theme_menu_block/theme_menu_block.info` (created)
+- `backdrop/modules/theme_menu_block/theme_menu_block.module` (created)
+- `backdrop/modules/watchdog_tools/watchdog_tools.info` (created)
+- `backdrop/modules/watchdog_tools/watchdog_tools.module` (created)
+- `backdrop/modules/watchdog_tools/watchdog_tools.bee.inc` (created)
 - `DOC/theme-menu-block.md` (created)
+- `DOC/watchdog-tools.md` (created)
 - `HANDOFF/handoff-2026-02-23-theme-switcher-cursor.md` (this file)
 
 ## References
 
 - `DOC/backdrop-for-llms.md`
 - `DOC/theme-menu-block.md`
+- `DOC/watchdog-tools.md`
 - `DOC/incoming-theme-triage.md`

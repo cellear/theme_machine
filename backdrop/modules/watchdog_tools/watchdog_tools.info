@@ -1,0 +1,5 @@
+name = Watchdog Tools
+description = Bee commands for managing the watchdog log (clear, count).
+type = module
+backdrop = 1.x
+package = Development
