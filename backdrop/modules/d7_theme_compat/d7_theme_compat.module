@@ -51,6 +51,35 @@ function _d7_theme_compat_get_template_map() {
 // ============================================================================
 
 /**
+ * Implements hook_layout_template_info().
+ *
+ * Registers a layout template with D7's default region names so that blocks
+ * can be placed into D7-compatible regions via Backdrop's Layout admin UI.
+ * When a D7 theme is active, our preprocess_page reads the Layout's block
+ * placements and renders them into the D7 page regions.
+ *
+ * Note: The 'path' must be relative to the module directory because
+ * _layout_get_all_info() prepends the module path automatically.
+ */
+function d7_theme_compat_layout_template_info() {
+  $layouts['d7_default'] = array(
+    'title' => t('Drupal 7 Regions'),
+    'path' => 'layouts/d7_default',
+    'regions' => array(
+      'header' => t('Header'),
+      'highlighted' => t('Highlighted'),
+      'help' => t('Help'),
+      'content' => t('Content'),
+      'sidebar_first' => t('Sidebar first'),
+      'sidebar_second' => t('Sidebar second'),
+      'footer' => t('Footer'),
+    ),
+    'default region' => 'content',
+  );
+  return $layouts;
+}
+
+/**
  * Implements hook_system_info_alter().
  *
  * Detects themes with 'core = 7.x' and injects the Backdrop compatibility
@@ -68,9 +97,16 @@ function d7_theme_compat_system_info_alter(&$info, $file, $type) {
 /**
  * Implements hook_init().
  *
- * Suppresses the Layout module when a D7 theme is active, so that page
- * rendering follows the D7 path: menu callback -> backdrop_render_page() ->
- * theme('page') -> page.tpl.php, instead of going through the Layout system.
+ * When a D7 theme is active:
+ * 1. Suppresses the Layout module so page rendering follows the D7 path
+ *    (menu callback -> backdrop_render_page() -> theme('page') -> page.tpl.php)
+ *    instead of going through the Layout system.
+ * 2. Prevents D7 themes' first-install routines from running. Many D7 themes
+ *    (especially those based on the Marinelli framework) check a
+ *    'theme_{name}_first_install' variable and run file operations (file_copy,
+ *    image_scale, etc.) using stdClass objects. Backdrop's file_copy() requires
+ *    a typed File entity, so these calls cause fatal TypeErrors. We pre-set the
+ *    variable to FALSE to skip the install routine entirely.
  *
  * Note: Cannot use _d7_theme_compat_is_d7_theme() here because the global
  * $theme isn't initialized yet during hook_init(). Instead, we check the
@@ -81,6 +117,15 @@ function d7_theme_compat_init() {
   $themes = list_themes();
   if (isset($themes[$default_theme]->info['core']) && $themes[$default_theme]->info['core'] == '7.x') {
     layout_suppress(TRUE);
+
+    // Prevent D7 themes' first-install file operations from crashing.
+    // Common pattern: theme checks variable_get('theme_{name}_first_install', TRUE)
+    // and if TRUE, runs file_copy() with stdClass objects (D7's file pattern).
+    // Backdrop's file_copy() requires a File entity, causing a TypeError.
+    $install_var = 'theme_' . $default_theme . '_first_install';
+    if (variable_get($install_var, TRUE) === TRUE) {
+      variable_set($install_var, FALSE);
+    }
   }
 }
 
@@ -347,6 +392,11 @@ function d7_theme_compat_preprocess_page(&$variables) {
     );
   }
 
+  // Render blocks from the active Layout into D7 page regions.
+  // Even though we suppress Layout's rendering, we load the Layout object
+  // to get its block assignments and render them into D7-style regions.
+  _d7_theme_compat_render_layout_blocks($variables);
+
   // Site identity variables.
   // D7 reference: theme.inc:2699-2709
   $variables['base_path'] = base_path();
@@ -569,6 +619,123 @@ function _d7_theme_compat_get_d7_theme_path() {
     }
   }
   return FALSE;
+}
+
+/**
+ * Render blocks from the active Layout into D7 page region variables.
+ *
+ * Loads the Layout that would have been used for the current path, iterates
+ * its block assignments, renders each block, and places the output into the
+ * corresponding D7 page region. Blocks in the 'content' region are appended
+ * after the main page content. The 'system:main' block is skipped since its
+ * content is already in $page['content'].
+ *
+ * This bridges Backdrop's Layout block placement UI with D7's region system.
+ */
+function _d7_theme_compat_render_layout_blocks(&$variables) {
+  if (!function_exists('layout_get_layout_by_path')) {
+    return;
+  }
+
+  // Temporarily un-suppress layout so we can load it.
+  // layout_get_layout_by_path() works regardless of suppress state, but
+  // we need the Layout object with its block definitions.
+  $layout = layout_get_layout_by_path();
+  if (!$layout || empty($layout->positions) || empty($layout->content)) {
+    return;
+  }
+
+  // Set up block contexts (needed for context-aware blocks).
+  $router_item = menu_get_item();
+  if ($router_item) {
+    $contexts = $layout->getContexts(LayoutContext::USAGE_TYPE_MENU);
+    foreach ($contexts as $context) {
+      $context->setDataFromRouter($router_item);
+    }
+  }
+
+  // Get the D7 theme's declared regions so we know which regions to populate.
+  $d7_regions = array_keys($variables['page']);
+
+  // Iterate Layout regions and render their blocks.
+  foreach ($layout->positions as $layout_region => $block_uuids) {
+    // Only populate regions that exist in the D7 theme's page array.
+    if (!in_array($layout_region, $d7_regions)) {
+      continue;
+    }
+
+    foreach ($block_uuids as $uuid) {
+      if (!isset($layout->content[$uuid])) {
+        continue;
+      }
+      $block = $layout->content[$uuid];
+
+      // Skip system blocks whose content is already provided by D7 page
+      // template variables. In D7, these were page-level variables ($logo,
+      // $site_name, $main_menu, $breadcrumb, $title, etc.), not blocks.
+      // Backdrop wraps them in blocks for its Layout system, but D7 themes
+      // already render them directly in page.tpl.php.
+      if ($block->module === 'system') {
+        $skip_deltas = array(
+          'main',             // Main content — already in $page['content'].
+          'header',           // Site name/logo/slogan — $logo, $site_name, $site_slogan.
+          'main-menu',        // Primary navigation — $main_menu / menu_tree().
+          'breadcrumb',       // Breadcrumb trail — $breadcrumb.
+          'page_components',  // Title + tabs — $title, $tabs.
+        );
+        if (in_array($block->delta, $skip_deltas)) {
+          continue;
+        }
+      }
+
+      // Skip disabled blocks.
+      if (isset($block->status) && !$block->status) {
+        continue;
+      }
+
+      // Let the block prepare its data before rendering.
+      // This is critical: blocks like Views execute their queries in prepare(),
+      // and getContent() only reads the cached result. The standard Layout
+      // renderer (LayoutRendererStandard) calls prepare() before getContent().
+      $block->prepare();
+
+      // Render the block content to a string.
+      $content = $block->getContent();
+      if (empty($content)) {
+        continue;
+      }
+      if (is_array($content)) {
+        $content = render($content);
+      }
+      if (empty($content)) {
+        continue;
+      }
+
+      // Get the block title.
+      $title = '';
+      if (!isset($block->settings['title_display']) || $block->settings['title_display'] !== LAYOUT_TITLE_NONE) {
+        $title = $block->getTitle();
+      }
+
+      // Wrap in a D7-style block div with title.
+      $block_html_id = backdrop_html_id('block-' . $block->module . '-' . $block->delta);
+      $block_classes = 'block block-' . backdrop_html_class($block->module);
+      $rendered_block = '<div id="' . $block_html_id . '" class="' . $block_classes . '">';
+      if ($title) {
+        $rendered_block .= '<h2>' . check_plain($title) . '</h2>';
+      }
+      $rendered_block .= '<div class="content">' . $content . '</div>';
+      $rendered_block .= '</div>';
+
+      // Append to the region's render array.
+      if (empty($variables['page'][$layout_region]) || !is_array($variables['page'][$layout_region])) {
+        $variables['page'][$layout_region] = array();
+      }
+      $variables['page'][$layout_region]['block_' . $uuid] = array(
+        '#markup' => $rendered_block,
+      );
+    }
+  }
 }
 
 /**

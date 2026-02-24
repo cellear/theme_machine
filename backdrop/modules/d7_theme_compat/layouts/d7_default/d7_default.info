@@ -1,0 +1,25 @@
+type = layout
+name = Drupal 7 Regions
+description = Layout with Drupal 7's default regions. Use this layout when a D7 theme is active so blocks can be placed into standard D7 regions (header, sidebars, footer, etc.).
+version = BACKDROP_VERSION
+backdrop = 1.x
+
+; D7 default regions (from drupal/modules/system/system.module).
+regions[header]         = Header
+regions[highlighted]    = Highlighted
+regions[help]           = Help
+regions[content]        = Content
+regions[sidebar_first]  = Sidebar first
+regions[sidebar_second] = Sidebar second
+regions[footer]         = Footer
+
+; page_top and page_bottom are omitted — D7 used those for system-level
+; injection (admin toolbar, etc.), not for user-placed blocks.
+
+default region = content
+
+; Include the Bootstrap 4 Grid System for sidebar columns.
+libraries[] = bootstrap4-gs
+
+; Preview image for the Layout admin UI.
+preview = d7-default-preview.png
