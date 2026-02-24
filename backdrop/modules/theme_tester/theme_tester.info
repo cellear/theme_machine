@@ -1,0 +1,5 @@
+name = Theme Tester
+description = Bee command to smoke-test enabled themes: switches each to default, loads a page, checks for errors, and reports missing regions.
+type = module
+backdrop = 1.x
+package = Theme Machine
