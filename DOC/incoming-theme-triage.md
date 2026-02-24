@@ -115,6 +115,27 @@ Execution outcome (2026-02-23):
    - fixed in `d7_theme_compat_preprocess_page()` by always setting `$variables['show_messages']`
 4. `forest_floor` intentionally deferred (D6 internals path)
 
+## Next-50 batch 1 smoke pass (2026-02-23)
+
+Top 10 from `DOC/d7-theme-next-50.tsv` were handled with a low-hanging-fruit policy:
+
+- skip Twig/newer-Drupal shapes (`.info.yml`, `.html.twig`)
+- skip hidden/unclear checkouts with no `.info`
+- skip `core = 6.x` for now
+
+Results:
+
+- **PASS**: `nigraphic`, `colorfulness_theme`, `bluefreedom3`, `simpler` (HTTP 200, no new PHP errors in smoke window)
+- **FAIL**: `redsalute` (HTTP 500; `ParseError: Unmatched '}'` in `templates/page.tpl.php`, line 75)
+- **SKIP (Twig/newer stack)**: `basic`
+- **SKIP (D6 deprioritized)**: `dessert`, `energetic`, `ishalist`
+- **SKIP (hidden/branch-only checkout)**: `floater` (README indicates “See major version branches” and no `.info` in checkout)
+
+Artifact:
+
+- `DOC/d7-theme-batch1-top10.tsv`
+- `DOC/d7-theme-batch1-top10.md`
+
 ## Implication for the “D6 internals” follow-up
 
 Themes that rely on D6-style page variables (`$left/$right/$closure/$search_box/$primary_links`) are likely to need an additional compatibility layer separate from current D7-focused handling.

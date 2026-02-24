@@ -1,0 +1,11 @@
+theme	action	reason	http	new_php_errors
+nigraphic	PASS		200	0
+colorfulness_theme	PASS		200	0
+basic	SKIP	twig_or_info_yml		
+bluefreedom3	PASS		200	0
+dessert	SKIP	core_6x_deprioritized		
+energetic	SKIP	core_6x_deprioritized		
+ishalist	SKIP	core_6x_deprioritized		
+simpler	PASS		200	0
+floater	SKIP	no_info_file		
+redsalute	FAIL	http_500	500	10
