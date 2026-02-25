@@ -24,6 +24,9 @@ agent-handoff/
 # Incoming theme clones (raw downloads, not part of Backdrop install)
 INCOMING/
 
+# D7 themes under test (not tracked; see TOOLING/d7-themes-installed.md)
+backdrop/themes/
+
 # Misc files
 Context.docx
 

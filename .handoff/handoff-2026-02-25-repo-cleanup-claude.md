@@ -40,8 +40,15 @@ Cleaned up the repository for public display. All tasks completed.
 - `lost-regions.md`
 - `git-conventions.md`
 
+### Removed from git tracking
+- `backdrop/themes/` — all 47 D7 themes (1,539 files, ~20MB) removed from index via
+  `git rm --cached -r`. Files remain on disk. `backdrop/themes/` added to `.gitignore`.
+- Theme list preserved in `TOOLING/d7-themes-installed.md` for future re-fetch tooling.
+
 ## State
 All changes staged. Not pushed — awaiting user clearance.
 
 ## Open questions
-None.
+- Future: a `bee fetch-themes` command (or shell script) to re-download the 47 themes
+  from Drupal.org. `bartik_d7` and `garland_d7` need rename handling after download.
+  See `TOOLING/d7-themes-installed.md`.

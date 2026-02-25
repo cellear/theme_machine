@@ -1,8 +1,0 @@
-name = ChangeMe
-description = A Drupal 6 Theme that's written so you can easily change colors, fonts and other basics.
-version = VERSION
-core = 6.x
-engine = phptemplate
-
-stylesheets[all][] = style.css
-stylesheets[all][] = changeme.css
