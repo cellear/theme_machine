@@ -210,7 +210,8 @@ THEME-MACHINE/
   drupal/                            # Stock Drupal 7.103 install (has its own ddev)
   INCOMING/                          # Raw theme clones for triage (not in git)
   DOC/                               # Persistent reference docs
-  HANDOFF/                           # Session journals
+  TOOLING/                           # Internal working data (catalogs, triage, test results)
+  .handoff/                          # Session journals (internal AI tooling)
 ```
 
-Last updated: 2026-02-22 by claude (ddev moved to backdrop/, updated paths and theme list)
+Last updated: 2026-02-25 by claude (HANDOFF/ → .handoff/, DOC/ internal data → TOOLING/)

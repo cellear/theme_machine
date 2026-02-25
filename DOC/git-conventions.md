@@ -6,7 +6,7 @@
 
 ## Staging
 - Be selective. Never `git add .` or `git add -A`.
-- Every commit that does substantive work should include an updated handoff for the current day (create or update).
+- Every commit that does substantive work should include an updated handoff in `.handoff/` for the current day (create or update).
 
 ## Pushing
 - Never push without user approval. When ready, give the command or offer to push.

@@ -18,14 +18,15 @@ Each file should contain: `Read and follow AGENT.md in this project's root direc
 
 ## Directories
 
-- `HANDOFF/` — Session journals, chronological
+- `.handoff/` — Session journals, chronological (hidden; internal AI tooling, not part of Theme Machine)
 - `DOC/` — Reference docs, persistent knowledge by topic
+- `TOOLING/` — Internal working data: theme catalogs, triage sheets, test run output
 
 Create these directories if they don't exist.
 
 ## Starting a Session
 
-1. Read recent files in `HANDOFF/` (newest first)
+1. Read recent files in `.handoff/` (newest first)
 2. Read relevant files in `DOC/`
 3. Summarize current project state for the user
 4. Ask what to work on next
@@ -34,7 +35,7 @@ Create these directories if they don't exist.
 
 Create a handoff document before the session ends.
 
-**File:** `HANDOFF/handoff-[yyyy-mm-dd]-[task]-[author].md`
+**File:** `.handoff/handoff-[yyyy-mm-dd]-[task]-[author].md`
 
 No spaces in filenames. Examples:
 - `handoff-2026-01-20-auth-bug-claude.md`
