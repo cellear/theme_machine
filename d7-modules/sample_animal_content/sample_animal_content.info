@@ -1,0 +1,5 @@
+name = Sample Animal Content
+description = Sample content - of the animal variety. Ported from Backdrop CMS.
+core = 7.x
+package = Development
+dependencies[] = link

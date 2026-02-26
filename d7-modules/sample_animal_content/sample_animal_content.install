@@ -1,0 +1,285 @@
+<?php
+/**
+ * @file
+ * Install, update, and uninstall functions for the Sample Animal Content
+ * module.
+ *
+ * Ported from Backdrop CMS module for Theme Machine project.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function sample_animal_content_install() {
+  $animals = sample_animal_content_list();
+  $module_path = drupal_get_path('module', 'sample_animal_content');
+  $image_directory = 'public://sample_animal_images';
+  file_prepare_directory($image_directory, FILE_CREATE_DIRECTORY);
+  $t = get_t();
+
+  // Create a vocabulary and terms.
+  $vocabulary = (object) array(
+    'name' => $t('Class'),
+    'machine_name' => 'animal_class',
+  );
+  taxonomy_vocabulary_save($vocabulary);
+
+  $classes = array();
+  foreach ($animals as $animal) {
+    if (!empty($animal['class']) && !in_array($animal['class'], $classes)) {
+      $classes[] = $animal['class'];
+    }
+  }
+  foreach ($classes as $class) {
+    $term = (object) array(
+      'name' => $class,
+      'vid' => $vocabulary->vid,
+    );
+    taxonomy_term_save($term);
+  }
+
+  // Create a content type.
+  $type = array(
+    'type' => 'animal',
+    'name' => $t('Animal'),
+    'base' => 'node_content',
+    'description' => $t('My favorite animals.'),
+    'custom' => 1,
+    'modified' => 1,
+    'locked' => 0,
+  );
+  $type = node_type_set_defaults((object) $type);
+  node_type_save($type);
+
+  // Set content type options.
+  variable_set('node_options_animal', array('status', 'promote'));
+  variable_set('node_submitted_animal', FALSE);
+  variable_set('menu_options_animal', array('main-menu'));
+
+  // Set URL alias pattern if pathauto is installed.
+  if (module_exists('pathauto')) {
+    variable_set('pathauto_node_animal_pattern', 'animals/[node:title]');
+  }
+
+  cache_clear_all('*', 'cache', TRUE);
+
+  // 'Image' field — create global field if it doesn't exist.
+  if (!field_info_field('field_image')) {
+    $field = array(
+      'field_name' => 'field_image',
+      'type' => 'image',
+      'cardinality' => 1,
+    );
+    field_create_field($field);
+  }
+
+  // 'Image' field instance on animal content type.
+  $instance = array(
+    'field_name' => 'field_image',
+    'label' => $t('Image'),
+    'entity_type' => 'node',
+    'bundle' => 'animal',
+    'description' => $t('Upload an image of this animal.'),
+    'settings' => array(
+      'file_directory' => 'sample_animal_images',
+      'alt_field' => TRUE,
+    ),
+    'widget' => array(
+      'weight' => -3,
+    ),
+    'display' => array(
+      'default' => array(
+        'settings' => array(
+          'image_style' => 'large',
+        ),
+        'weight' => -1,
+      ),
+      'teaser' => array(
+        'settings' => array(
+          'image_style' => 'medium',
+          'image_link' => 'content',
+        ),
+        'weight' => -1,
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // 'Body' field — add body field to the content type.
+  node_add_body_field($type, $t('Body'));
+
+  // 'Class' taxonomy reference field.
+  $field = array(
+    'field_name' => 'field_animal_class',
+    'type' => 'taxonomy_term_reference',
+    'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+    'settings' => array(
+      'allowed_values' => array(
+        array(
+          'vocabulary' => 'animal_class',
+          'parent' => '0',
+        ),
+      ),
+    ),
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_animal_class',
+    'label' => $t('Class'),
+    'entity_type' => 'node',
+    'bundle' => 'animal',
+    'description' => $t('The taxonomy class this animal belongs to.'),
+    'widget' => array(
+      'type' => 'taxonomy_autocomplete',
+      'weight' => -4,
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'inline',
+      ),
+      'teaser' => array(
+        'label' => 'inline',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // 'Link' field (requires link contrib module).
+  $field = array(
+    'field_name' => 'field_animal_link',
+    'type' => 'link_field',
+    'cardinality' => 1,
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_animal_link',
+    'label' => $t('Link'),
+    'entity_type' => 'node',
+    'bundle' => 'animal',
+    'description' => $t('A link to the Wikipedia page with more information about this animal.'),
+    'settings' => array(
+      'title' => 'none',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'inline',
+        'weight' => 10,
+      ),
+      'teaser' => array(
+        'label' => 'inline',
+        'weight' => 10,
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create animal nodes.
+  foreach ($animals as $name => $animal) {
+    $node = new stdClass();
+    $node->type = 'animal';
+    $node->title = $animal['title'];
+    node_object_prepare($node);
+    $node->language = LANGUAGE_NONE;
+    $node->uid = 1;
+
+    // Class field.
+    $terms = taxonomy_term_load_multiple_by_name($animal['class'], 'animal_class');
+    $term = reset($terms);
+    if ($term) {
+      $node->field_animal_class[LANGUAGE_NONE][0]['tid'] = $term->tid;
+    }
+
+    // Image field.
+    if (!isset($animal['image']) || $animal['image'] !== FALSE) {
+      $filename = empty($animal['image']) ? $name . '.jpg' : $animal['image'];
+      $filepath = $module_path . '/images/' . $filename;
+      if (file_exists($filepath)) {
+        $data = file_get_contents($filepath);
+        $image = file_save_data($data, $image_directory . '/' . $filename, FILE_EXISTS_REPLACE);
+        if ($image) {
+          $image->uid = 1;
+          file_save($image);
+          $node->field_image[LANGUAGE_NONE][] = (array) $image;
+        }
+      }
+    }
+
+    // Body field.
+    if (!isset($animal['text']) || $animal['text'] !== FALSE) {
+      $filename = empty($animal['text']) ? $name . '.txt' : $animal['text'];
+      $filepath = $module_path . '/animals_txt/' . $filename;
+      if (file_exists($filepath)) {
+        $text = file_get_contents($filepath);
+        $node->body[LANGUAGE_NONE][] = array(
+          'value' => $text,
+          'format' => 'filtered_html',
+        );
+      }
+    }
+
+    // Link field.
+    if (!empty($animal['link'])) {
+      $node->field_animal_link[LANGUAGE_NONE][0] = array(
+        'url' => $animal['link'],
+        'title' => '',
+      );
+    }
+
+    // Save the node.
+    $node = node_submit($node);
+    node_save($node);
+  }
+
+  drupal_flush_all_caches();
+  drupal_set_message($t('Sample animal content has been created.'));
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function sample_animal_content_uninstall() {
+  // Delete all animal nodes.
+  $nids = db_select('node', 'n')
+    ->fields('n', array('nid'))
+    ->condition('type', 'animal')
+    ->execute()
+    ->fetchCol();
+  if (!empty($nids)) {
+    node_delete_multiple($nids);
+  }
+
+  // Delete field instances for the animal content type.
+  $instances = field_info_instances('node', 'animal');
+  foreach ($instances as $instance) {
+    field_delete_instance($instance);
+  }
+
+  // Delete custom fields that aren't used elsewhere.
+  foreach (array('field_animal_class', 'field_animal_link') as $field_name) {
+    $field = field_info_field($field_name);
+    if ($field) {
+      field_delete_field($field_name);
+    }
+  }
+
+  // Delete the content type.
+  node_type_delete('animal');
+
+  // Delete the vocabulary.
+  $vocabulary = taxonomy_vocabulary_machine_name_load('animal_class');
+  if ($vocabulary) {
+    taxonomy_vocabulary_delete($vocabulary->vid);
+  }
+
+  // Clean up variables.
+  variable_del('node_options_animal');
+  variable_del('node_submitted_animal');
+  variable_del('menu_options_animal');
+  variable_del('pathauto_node_animal_pattern');
+
+  // Clean up uploaded images.
+  $image_directory = 'public://sample_animal_images';
+  file_unmanaged_delete_recursive($image_directory);
+
+  drupal_set_message(t('Sample animal content has been removed.'));
+}

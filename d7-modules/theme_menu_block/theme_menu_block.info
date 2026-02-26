@@ -1,0 +1,4 @@
+name = Theme Menu Block
+description = Provides a block with links to switch the default theme.
+core = 7.x
+package = Development

@@ -1,0 +1,124 @@
+<?php
+
+/**
+ * @file
+ * Provides a block to switch the site's default theme via simple links.
+ *
+ * Ported from Backdrop CMS module for Theme Machine project.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function theme_menu_block_permission() {
+  return array(
+    'switch themes' => array(
+      'title' => t('Switch themes'),
+      'description' => t('Change the site default theme using the theme menu block.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function theme_menu_block_menu() {
+  $items = array();
+  $items['theme-switcher/%'] = array(
+    'title' => 'Switch theme',
+    'page callback' => 'theme_menu_block_switch',
+    'page arguments' => array(1),
+    'access arguments' => array('switch themes'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Page callback: switches the default theme and redirects back.
+ */
+function theme_menu_block_switch($theme_name) {
+  $token = isset($_GET['token']) ? $_GET['token'] : '';
+  if (!drupal_valid_token($token, 'theme_menu_block_' . $theme_name)) {
+    drupal_set_message(t('Invalid or missing token.'), 'error');
+    drupal_goto('<front>');
+    return;
+  }
+
+  $themes = list_themes();
+  if (!isset($themes[$theme_name]) || !$themes[$theme_name]->status) {
+    drupal_set_message(t('Theme %name is not available.', array('%name' => $theme_name)), 'error');
+    drupal_goto('<front>');
+    return;
+  }
+
+  variable_set('theme_default', $theme_name);
+  cache_clear_all('*', 'cache', TRUE);
+  cache_clear_all('*', 'cache_page', TRUE);
+
+  $human_name = $themes[$theme_name]->info['name'];
+  drupal_set_message(t('Default theme switched to %name.', array('%name' => $human_name)));
+
+  if (isset($_GET['destination'])) {
+    drupal_goto($_GET['destination']);
+  }
+  drupal_goto('<front>');
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function theme_menu_block_block_info() {
+  $blocks = array();
+  $blocks['switcher'] = array(
+    'info' => t('Theme Menu Block'),
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function theme_menu_block_block_view($delta = '') {
+  if ($delta !== 'switcher') {
+    return;
+  }
+
+  if (!user_access('switch themes')) {
+    return;
+  }
+
+  $current_theme = variable_get('theme_default', 'bartik');
+  $themes = list_themes();
+  $current_path = current_path();
+
+  $items = array();
+  foreach ($themes as $machine_name => $theme) {
+    if (!$theme->status) {
+      continue;
+    }
+    $human_name = $theme->info['name'];
+    if ($machine_name === $current_theme) {
+      $items[$human_name] = '<strong>' . check_plain($human_name) . '</strong> ' . t('(active)');
+    }
+    else {
+      $token = drupal_get_token('theme_menu_block_' . $machine_name);
+      $items[$human_name] = l($human_name, 'theme-switcher/' . $machine_name, array(
+        'query' => array(
+          'token' => $token,
+          'destination' => $current_path,
+        ),
+      ));
+    }
+  }
+
+  ksort($items);
+
+  $block = array();
+  $block['subject'] = t('Theme Menu Block');
+  $block['content'] = array(
+    '#theme' => 'item_list',
+    '#items' => array_values($items),
+  );
+  return $block;
+}
