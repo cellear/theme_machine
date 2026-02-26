@@ -183,7 +183,7 @@ function sample_animal_content_install() {
     $node->uid = 1;
 
     // Class field.
-    $terms = taxonomy_term_load_multiple_by_name($animal['class'], 'animal_class');
+    $terms = taxonomy_get_term_by_name($animal['class'], 'animal_class');
     $term = reset($terms);
     if ($term) {
       $node->field_animal_class[LANGUAGE_NONE][0]['tid'] = $term->tid;
