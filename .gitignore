@@ -1,8 +1,12 @@
 # OS files
 .DS_Store
 
-# Local dev environment
+# Local dev environment (allow ddev PHP overrides for short_open_tag)
 .ddev/
+backdrop/.ddev/*
+!backdrop/.ddev/php/
+backdrop/.ddev/php/*
+!backdrop/.ddev/php/short-open-tag.ini
 
 # Reference Drupal 7 installs (not part of the project)
 drupal/

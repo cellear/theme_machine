@@ -1,0 +1,70 @@
+<?php
+/**
+ * @file
+ * Sample content - of the animal variety.
+ */
+
+/**
+ * An array of sample animal content to add to the site.
+ *
+ * @return array
+ *   An associative array of sample animal content, where the keys are animal
+ *   names and the values are associative arrays containing:
+ *   - title: The translated title of the node.
+ *   - text: (optional) The filename of the text file in the 'animals_txt'
+ *     directory that contains the formatted text to use as the node body.
+ *     Defaults to '[animal_name].txt'. Set to FALSE for no body text.
+ *   - image: (optional) The filename of the image in the 'images' directory to
+ *     add to the node's image field. Defaults to '[animal_name].jpg'. Set to
+ *     FALSE for no image.
+ *   - class: (optional) The name of the taxonomy term from the 'Class'
+ *     vocabulary to assign to this node. Defaults to no class.
+ *   - link: (optional) A Wikipedia URL to add to the node's 'Link' field where
+ *     more information about the animal can be found. Defaults to no link.
+ */
+function sample_animal_content_list() {
+  $t = get_t();
+
+  return array(
+    'crocodile' => array(
+      'title' => $t('Saltwater Crocodile'),
+      'class' => 'Reptilia',
+      'link' => 'https://en.wikipedia.org/wiki/Saltwater_crocodile',
+    ),
+    'eagle' => array(
+      'title' => $t('Bald Eagle'),
+      'class' => 'Aves',
+      'link' => 'https://en.wikipedia.org/wiki/Bald_eagle',
+    ),
+    'elephant' => array(
+      'title' => $t('Elephant'),
+      'class' => 'Mammalia',
+      'link' => 'https://en.wikipedia.org/wiki/Elephant',
+    ),
+    'fox' => array(
+      'title' => $t('Fox'),
+      'class' => 'Mammalia',
+      'link' => 'https://en.wikipedia.org/wiki/Fox',
+    ),
+    'giraffe' => array(
+      'title' => $t('Giraffe'),
+      'class' => 'Mammalia',
+      'link' => 'https://en.wikipedia.org/wiki/Giraffe',
+    ),
+    'lion' => array(
+      'title' => $t('Lion'),
+      'class' => 'Mammalia',
+      'link' => 'https://en.wikipedia.org/wiki/Lion',
+    ),
+    'llama' => array(
+      'title' => $t('Llama'),
+      'class' => 'Mammalia',
+      'link' => 'https://en.wikipedia.org/wiki/Llama',
+    ),
+    'panda' => array(
+      'title' => $t('Giant Panda'),
+      'class' => 'Mammalia',
+      'link' => 'https://en.wikipedia.org/wiki/Giant_panda',
+    ),
+  );
+}

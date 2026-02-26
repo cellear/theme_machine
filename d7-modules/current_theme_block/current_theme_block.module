@@ -1,0 +1,39 @@
+<?php
+
+/**
+ * @file
+ * Provides a block that shows the current active theme.
+ *
+ * Uses hook_page_build() to inject directly into the content region,
+ * bypassing D7's per-theme block configuration.
+ */
+
+/**
+ * Implements hook_page_build().
+ *
+ * Injects current theme info at the top of the content region for every
+ * theme, without requiring per-theme block placement.
+ */
+function current_theme_block_page_build(&$page) {
+  $themes = list_themes();
+  $active_theme = !empty($GLOBALS['theme']) ? $GLOBALS['theme'] : variable_get('theme_default', 'bartik');
+  $default_theme = variable_get('theme_default', 'bartik');
+
+  $active_name = isset($themes[$active_theme]->info['name']) ? $themes[$active_theme]->info['name'] : $active_theme;
+  $default_name = isset($themes[$default_theme]->info['name']) ? $themes[$default_theme]->info['name'] : $default_theme;
+
+  $items = array(
+    t('Active: @name (@machine)', array('@name' => $active_name, '@machine' => $active_theme)),
+  );
+
+  if ($default_theme !== $active_theme) {
+    $items[] = t('Default: @name (@machine)', array('@name' => $default_name, '@machine' => $default_theme));
+  }
+
+  $page['content']['current_theme_block'] = array(
+    '#theme' => 'item_list',
+    '#items' => $items,
+    '#title' => t('Current theme'),
+    '#weight' => -100,
+  );
+}

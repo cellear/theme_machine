@@ -1,0 +1,4 @@
+name = Current Theme Block
+description = Provides a block that displays the current active theme.
+core = 7.x
+package = Development

@@ -1,0 +1,10 @@
+type = module
+name = Sample Animal Content
+description = Sample content - of the animal variety
+package = Triplo
+backdrop = 1.x
+
+; Added by Backdrop CMS packaging script on 2022-04-08
+project = sample_animal_content
+version = 1.x-1.0.2
+timestamp = 1649407507
