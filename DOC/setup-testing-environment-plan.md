@@ -1,7 +1,7 @@
 # Testing Environment Setup Plan
 
 **Date:** 2026-02-25
-**Status:** Planning phase
+**Status:** Phase 2 complete (D7 modules ported), Phase 1 & 3 pending
 **Author:** Claude (Opus/Haiku)
 
 ## Overview
@@ -17,11 +17,10 @@ Establish an easy, automated way for testers to spin up isolated Backdrop CMS an
    - Auto-import sample content
    - Quick reset capability via scripts
 
-2. **Phase 2: D7 Sample Content**
-   - Option A: Port `sample_animal_content` from Backdrop to D7
-   - Option B: Create lightweight D7 equivalent using Features + Devel Generate
-   - Must include: images, taxonomy, multiple content types with varied layouts
-   - Should be feature-based for easy reuse
+2. **Phase 2: D7 Sample Content** ✅ COMPLETE
+   - Ported `sample_animal_content` from Backdrop to D7 → `d7-modules/sample_animal_content/`
+   - Ported `theme_menu_block` from Backdrop to D7 → `d7-modules/theme_menu_block/`
+   - See "D7 Module Install Instructions" section below for usage
 
 3. **Phase 3: DrupalForge Template** (future)
    - Create repository compatible with DrupalForge platform
@@ -73,32 +72,48 @@ theme_machine/
     └── setup-testing-environment-plan.md  # This file
 ```
 
-## Phase 2 Details: D7 Sample Content
+## Phase 2 Details: D7 Modules ✅ COMPLETE
 
-### Decision Tree
+Two Backdrop modules were ported to Drupal 7 and placed in `d7-modules/`.
 
-- **Analyze `sample_animal_content` Backdrop module:**
-  - What Backdrop-specific APIs does it use?
-  - Can it be ported with minimal changes?
-  - How many nodes, taxonomy terms, images?
+### D7 Module Install Instructions
 
-- **If easy to port (< 4 hours):** Create `d7_sample_animal_content` module
-  - Reuse most code from Backdrop version
-  - Adapt Views, blocks, content type definitions to D7
+**Prerequisites:**
+1. A working Drupal 7 site
+2. The `link` contrib module (required by `sample_animal_content`)
 
-- **If difficult to port:** Create lightweight D7 alternative
-  - Use Devel Generate for base content
-  - Create one custom content type (Animal) with fields
-  - Hand-craft 5-10 nodes with real images from Unsplash/Drupal.org
-  - Create simple custom block to display animal count
+**Install steps:**
 
-### Sample content must include
+```bash
+# 1. Copy modules into D7 site
+cp -r d7-modules/theme_menu_block /path/to/d7/sites/all/modules/
+cp -r d7-modules/sample_animal_content /path/to/d7/sites/all/modules/
 
-- Multiple content types OR multiple nodes of same type
-- At least 2 images per content item (demonstrate image field handling)
-- Taxonomy terms (categories/tags)
-- Some nodes published, some unpublished
-- Custom blocks referencing the content
+# 2. Install link contrib module (dependency for sample_animal_content)
+drush dl link && drush en link -y
+
+# 3. Enable the modules
+drush en theme_menu_block -y
+drush en sample_animal_content -y
+
+# 4. Place the theme switcher block in a region
+#    Go to admin/structure/block and place "Theme Menu Block" in a sidebar
+
+# 5. Grant "Switch themes" permission to desired roles
+#    Go to admin/people/permissions and check "Switch themes"
+```
+
+**What gets created on install of `sample_animal_content`:**
+- "Animal" content type with image, body, taxonomy class, and link fields
+- "Class" taxonomy vocabulary with terms: Mammalia, Aves, Reptilia
+- 8 animal nodes with images and body text (Crocodile, Eagle, Elephant, Fox, Giraffe, Lion, Llama, Panda)
+
+**Clean uninstall:**
+```bash
+drush dis sample_animal_content -y
+drush pm-uninstall sample_animal_content -y
+```
+This removes all animal nodes, fields, the content type, vocabulary, variables, and uploaded images.
 
 ## Phase 3 Details: DrupalForge Template (Future)
 
@@ -140,13 +155,13 @@ drupal-theme-testing-template/
 
 ## Known Blockers & Questions
 
-1. **D7 Theme Compatibility Modules**
-   - Do `d7_theme_compat`, `lost_regions`, `watchdog_tools` need porting to D7 or do they already work?
-   - Assumption: They're designed to help D7 themes run on Backdrop, so only needed in Backdrop instance
+1. ~~**D7 Theme Compatibility Modules**~~ ✅ RESOLVED
+   - `d7_theme_compat`, `lost_regions`, `watchdog_tools` are Backdrop-only modules (they help D7 themes run on Backdrop)
+   - The D7 instance only needs `theme_menu_block` + `sample_animal_content` + stock D7 themes
 
-2. **D7 Sample Content**
-   - Need to verify difficulty of porting `sample_animal_content`
-   - Devel module available for D7? (Yes, but may be older)
+2. ~~**D7 Sample Content**~~ ✅ RESOLVED
+   - Ported `sample_animal_content` to D7 — straightforward port
+   - Requires `link` contrib module as dependency
 
 3. **DDEV Configuration**
    - Should both instances share one ddev project (two docroots) or separate projects?
@@ -158,27 +173,23 @@ drupal-theme-testing-template/
 
 ## Next Steps (Priority Order)
 
-1. **Verify D7 compatibility module requirements** (30 min)
-   - Test if theme modules work on D7 as-is
-   - Identify what needs porting
+1. ~~**Verify D7 compatibility module requirements**~~ ✅ DONE
+2. ~~**Port `sample_animal_content` and `theme_menu_block` to D7**~~ ✅ DONE
 
-2. **Analyze `sample_animal_content` module** (1 hour)
-   - Examine GitHub source
-   - Estimate porting effort
-   - Make Phase 2 decision (port vs. create new)
+3. **Test D7 module ports on actual D7 site** (1-2 hours)
+   - Pull to test machine, install on D7 via ddev
+   - Verify `link` module dependency works
+   - Test theme switching with multiple D7 themes enabled
+   - Verify sample content displays correctly
 
-3. **Create setup script skeleton** (2 hours)
-   - Basic ddev project creation
-   - Module enable/install
+4. **Create setup script skeleton** (2 hours)
+   - Basic ddev project creation for both Backdrop and D7
+   - Module enable/install automation
    - Content import hooks
 
-4. **Test setup script with actual testers** (4 hours)
+5. **Test setup script with actual testers** (4 hours)
    - Document any edge cases
    - Simplify/clarify instructions
-
-5. **Phase 2: D7 content** (4-8 hours)
-   - Implement chosen approach
-   - Create module structure
 
 6. **Phase 3: DrupalForge template** (4-6 hours)
    - Fork starter_template
@@ -195,4 +206,4 @@ drupal-theme-testing-template/
 
 ---
 
-**Last updated:** 2026-02-25 by Claude
+**Last updated:** 2026-02-25 by Claude — Phase 2 complete, install instructions added

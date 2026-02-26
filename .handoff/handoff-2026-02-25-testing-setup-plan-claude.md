@@ -1,102 +1,88 @@
-# Handoff: Testing Environment Setup Plan
+# Handoff: D7 Module Ports & Testing Environment Plan
 
 **Date:** 2026-02-25
-**Session Focus:** Planning dual Backdrop/D7 testing environment
+**Session Focus:** Planning dual Backdrop/D7 testing environment + porting modules
 **Author:** Claude (Opus → Haiku)
 
-## What Was Attempted
+## What Was Accomplished
 
-Researched and designed an approach to let testers easily spin up isolated Backdrop CMS and Drupal 7 development environments in parallel using DDEV, with theme testing modules and sample content pre-configured.
+### D7 Module Ports (Complete)
 
-## What Worked
+Ported two Backdrop modules to Drupal 7, placed in `d7-modules/`:
 
-✅ **DrupalForge Research Complete**
-- Understood DrupalForge platform, template structure, and deployment model
-- Identified that starter_template is the canonical starting point
-- Documented all three deployment targets: DevPanel (cloud), Dev Containers, DDEV (local)
-- Found that `.devpanel/init.sh` and DDEV hooks handle environment-specific initialization
+**`d7-modules/sample_animal_content/`** — Creates an "Animal" content type with image, body, taxonomy class, and link fields, plus 8 sample nodes with images and Wikipedia text.
 
-✅ **Project Context Gathered**
-- Reviewed CLAUDE.md protocol and MEMORY.md conventions
-- Identified existing modules: `d7_theme_compat`, `theme_menu_block`, `watchdog_tools`, `lost_regions`
-- Confirmed 47 D7 themes on disk, 11 confirmed working
-- Understood current state: Backdrop instance working, D7 instance doesn't exist yet
+- **Dependency:** Requires `link` contrib module (`drush dl link && drush en link` first)
+- **Install:** `drush en sample_animal_content` — content is created on enable
+- **Uninstall:** `drush dis sample_animal_content && drush pm-uninstall sample_animal_content` — cleans up all nodes, fields, vocabulary, variables, and uploaded images
+- Key D7 adaptations: stdClass instead of Backdrop entity classes, `variable_set/get` instead of config API, `drupal_*` function names, `node_type_set_defaults()`, `node_add_body_field()`, numeric vocab `vid`
+- Added `hook_uninstall()` (Backdrop version didn't have one)
+- Includes 8 JPG images and 8 HTML text files bundled with the module
 
-✅ **High-Level Plan Created**
-- Three-phase approach: (1) Automated setup script, (2) D7 sample content, (3) DrupalForge template
-- Identified key decision points (Port vs. create D7 content module)
-- Listed known blockers and success criteria
+**`d7-modules/theme_menu_block/`** — Block with clickable links to switch the default theme, with CSRF token protection and destination redirect.
 
-## What Didn't Work / What's Uncertain
+- **No dependencies** beyond D7 core
+- **Install:** `drush en theme_menu_block`, then place the "Theme Menu Block" block in a region via admin/structure/block
+- **Permission:** Users need the "Switch themes" permission to see/use the block
+- Key D7 adaptations: `variable_set/get` instead of config API, `drupal_*` functions, D7 `hook_block_info/view` signatures
 
-❓ **D7 Sample Content Approach**
-- Started research on `sample_animal_content` porting effort but task was interrupted
-- Need to verify: How many Backdrop-specific APIs does sample_animal_content use?
-- Options: Port to D7 vs. create lightweight D7 alternative using Devel Generate
+### DrupalForge Research (Complete)
 
-❓ **D7 Theme Module Compatibility**
-- Haven't verified if `d7_theme_compat`, `theme_menu_block`, etc. work on D7 as-is
-- These modules were written to make D7 themes work on Backdrop—do they need porting the other way?
-- Assumption: Only needed in Backdrop instance, but should confirm
+- DrupalForge uses a starter_template repo pattern with `.ddev/`, `.devpanel/`, `.devcontainer/` directories
+- `.devpanel/init.sh` handles initialization on cloud; DDEV hooks handle local
+- Docker image publishing via GitHub Actions for fast provisioning
+- No self-service template submission — need to contact DrupalForge team
 
-❓ **DDEV Architecture**
-- Decided to use separate ddev projects (`.ddev/` and `.ddev-d7/`) for isolation
-- But haven't verified if DDEV can easily run two projects on same machine without conflicts
-- Should test shared docker containers vs. isolated approach
+### Testing Environment Plan (Complete)
 
-## Current State
+Three-phase plan written to `DOC/setup-testing-environment-plan.md`:
+1. Automated DDEV setup script for parallel Backdrop + D7 instances
+2. D7 sample content (now done — ported `sample_animal_content`)
+3. DrupalForge template (future)
 
-📄 **Files Created**
-- `DOC/setup-testing-environment-plan.md` — Complete 3-phase plan with details, blockers, success criteria
+## What's Resolved
 
-📝 **Ready to Commit**
-- Plan document ready
-- This handoff document
+✅ **D7 Sample Content** — Ported `sample_animal_content` successfully. No need for Devel Generate alternative.
+✅ **D7 Theme Switcher** — Ported `theme_menu_block`. Standalone D7 module, no dependency on `d7_theme_compat`.
+✅ **Module Architecture** — `d7_theme_compat`, `lost_regions`, etc. are Backdrop-only modules. The D7 instance just needs `theme_menu_block` + `sample_animal_content` + stock D7 themes.
 
-## Open Questions
+## What's Still Open
 
-1. How hard is it to port `sample_animal_content` Backdrop → D7? (Affects Phase 2 timeline)
-2. Do theme compat modules need porting to D7, or only used in Backdrop?
-3. Should setup script target all 47 D7 themes or subset by default?
-4. Can ddev run two projects on same machine without port/network conflicts? (Test before Phase 1 implementation)
+❓ **DDEV Dual-Project Architecture** — Haven't tested running two ddev projects on same machine. Need to validate before writing setup script.
+❓ **Setup Script** — Not yet created. Phase 1 of the plan.
+❓ **DrupalForge Template** — Future phase. Need to fork starter_template and adapt.
+❓ **Testing** — D7 module ports haven't been tested on an actual D7 site yet.
 
-## Next Steps (For Next Session)
+## Files Created/Modified
 
-### Immediate (1-2 hours)
-- [ ] Verify `sample_animal_content` porting difficulty (examine GitHub source)
-- [ ] Test D7 theme compat module requirements
-- [ ] Validate DDEV dual-project setup feasibility
+- `d7-modules/sample_animal_content/` — 19 files (module, install, 8 text, 8 images, info)
+- `d7-modules/theme_menu_block/` — 2 files (module, info)
+- `DOC/setup-testing-environment-plan.md` — 3-phase plan
+- `.handoff/handoff-2026-02-25-testing-setup-plan-claude.md` — This file
 
-### Near-term (Phase 1 Implementation)
-- [ ] Create `setup-testing-environment.sh` skeleton
-- [ ] Create `.ddev-d7/` directory with config.yaml
-- [ ] Create module enable/install hooks
-- [ ] Test with actual ddev commands
+## Next Steps
 
-### Medium-term (Phase 2)
-- [ ] Implement D7 sample content approach (port or create)
-- [ ] Test content imports on multiple themes
+### Immediate
+- [ ] Test D7 module ports on actual D7 site (pull to test machine, `ddev start`, install)
+- [ ] Verify `link` module dependency works correctly
+- [ ] Test theme switching with multiple D7 themes enabled
+
+### Near-term (Phase 1)
+- [ ] Create `setup-testing-environment.sh` script
+- [ ] Create D7 DDEV config
+- [ ] Validate dual-project DDEV setup
 
 ### Future (Phase 3)
 - [ ] Fork DrupalForge starter_template
-- [ ] Adapt for dual-instance setup
 - [ ] Contact DrupalForge team for listing
 
 ## References
 
-- Main plan: `DOC/setup-testing-environment-plan.md`
-- Project instructions: `CLAUDE.md` (agent handoff protocol)
-- Memory: `.claude/projects/-Users-lmccormi-Sites-COMMUNITY-theme-machine/memory/MEMORY.md`
-- Research: DrupalForge docs, starter_template GitHub repo
-
-## Session Notes
-
-- Switched from Opus to Haiku mid-session due to Claude Pro usage limits
-- DrupalForge template is significant future goal but not blocking Phase 1/2
-- Plan emphasizes verification of assumptions before heavy implementation
-- Success metric: Testers can have dual environment ready in <10 minutes
+- Plan: `DOC/setup-testing-environment-plan.md`
+- D7 modules: `d7-modules/`
+- Backdrop modules: `backdrop/modules/`
 
 ---
 
 **Created:** 2026-02-25 by Claude
-**Status:** Ready for next session's implementation planning
+**Updated:** 2026-02-25 by Claude — added module port results and install instructions
