@@ -10,23 +10,16 @@
  */
 function theme_tester_bee_command() {
   $items['theme-test'] = array(
-    'description' => bt('Smoke-test enabled themes: switch each to default, load a page, check for errors and missing regions.'),
+    'description' => 'Smoke-test enabled themes: switch each to default, load a page, check for errors and missing regions.',
     'callback' => 'theme_tester_test_callback',
-    'group' => 'theme_tester',
     'aliases' => array('tt'),
     'options' => array(
-      'path' => bt('Internal path to request for each theme. Default: node/1.'),
-      'base-url' => bt('Base URL of the site. Default: auto-detect from global $base_url.'),
-      'themes' => bt('Comma-separated list of theme machine names to test. Default: all enabled.'),
-      'report' => bt('Path to save a markdown report file. Default: no file output.'),
+      'path' => 'Internal path to request for each theme. Default: node/1.',
+      'base-url' => 'Base URL of the site. Default: auto-detect from global $base_url.',
+      'themes' => 'Comma-separated list of theme machine names to test. Default: all enabled.',
+      'report' => 'Path to save a markdown report file. Default: no file output.',
     ),
     'bootstrap' => BEE_BOOTSTRAP_FULL,
-    'examples' => array(
-      'bee theme-test' => bt('Test all enabled themes against /node/1.'),
-      'bee theme-test --path=node/5' => bt('Test all themes against /node/5.'),
-      'bee theme-test --themes=bartik_d7,garland_d7' => bt('Test only specific themes.'),
-      'bee theme-test --report=DOC/theme-test-results.md' => bt('Save results to a markdown file.'),
-    ),
   );
   return $items;
 }

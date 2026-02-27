@@ -2,6 +2,21 @@
 
 A Backdrop module that provides a Bee CLI command to smoke-test all enabled themes automatically.
 
+## Quick Reference
+
+```bash
+# Test all themes with correct URL
+ddev bee theme-test --base-url=https://theme-machine.ddev.site
+
+# Test specific themes
+ddev bee theme-test --base-url=https://theme-machine.ddev.site --themes=bartik_d7,garland_d7
+
+# Save results to a file
+ddev bee theme-test --base-url=https://theme-machine.ddev.site --report=TOOLING/results.md
+```
+
+**Note:** `ddev bee help theme-test` doesn't work due to a bee bug with options parsing. Use this documentation instead.
+
 ## What it does
 
 For each enabled theme, the `bee theme-test` command:
