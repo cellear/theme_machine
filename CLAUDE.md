@@ -56,9 +56,16 @@ When you learn something persistent about the project — architecture decisions
 
 When updating a DOC file, add or update a `Last updated: yyyy-mm-dd by [author]` line at the bottom.
 
+## Git (how we apply it here)
+
+- **Commits:** Use multi-line commit messages. Line 1 is a summary, body lines list tasks (one per line), and the final line is the agent signature. Use at least 3 lines; rarely more than 6-7.
+- **Staging:** Stage selectively. Never use `git add .` or `git add -A`. Every commit with substantive work should include an updated handoff for the current day (create or update).
+- **Pushing:** Never push without explicit user approval. When ready, provide the push command or offer to push.
+
 ## Version History
 
 Source: https://github.com/cellear/agent-handoff
 
+- **1.2** (2026-02-27) — Added project-specific Git workflow rules for commits, staging, and pushing approval
 - **1.1** (2026-02-16) — Split into README + AGENT.md; added tool-specific setup; simplified DOC guidance
 - **1.0** (2026-01-25) — Initial protocol: HANDOFF/ and DOC/ directories, session workflow, naming convention
