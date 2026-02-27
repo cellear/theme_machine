@@ -99,11 +99,33 @@ CLAUDE.md was updated (pulled from remote) with explicit git workflow rules. Fut
 
 Note: this session violated the staging and handoff rules before CLAUDE.md was pulled. The missing handoffs were committed separately with an honest note.
 
+## New Feature: Per-Theme Layout Generation (discussed end of session)
+
+**The idea:** Instead of one hardcoded `d7_default` layout with 7 standard regions, auto-generate a layout template per D7 theme using that theme's actual declared regions. This enables block placement in custom regions (e.g., `featured`, `triptych_first`) that real-world D7 themes use.
+
+**Key insight from reading the module:**
+- The rendering side is already correct — `_d7_theme_compat_render_layout_blocks()` already only populates regions the D7 theme declares
+- The gap is in block *placement* — the Layout UI only offers 7 hardcoded regions
+- The fix is in `d7_theme_compat_layout_template_info()` (currently lines 64-80) and a new sync function
+
+**Scope agreed with user:**
+- Only Default and Front Page layout instances need management (not path-specific layouts)
+- Layout template files can be shared — only the region declarations differ
+
+**Implementation is documented in:** `DOC/per-theme-layouts.md`
+
+**Next agent: start here.** Read `DOC/per-theme-layouts.md` for the full plan, then:
+1. Check actual Backdrop layout machine names: `ls backdrop/config/active/ | grep layout`
+2. Check if Backdrop has a theme-switching hook (alternative to polling in `hook_init()`)
+3. Verify layout template file sharing works (multiple templates, same `path`)
+4. Implement Step 1 (dynamic `hook_layout_template_info()`) first — this is low-risk and testable independently
+5. Test by enabling a D7 theme with custom regions and checking the Layout UI
+
 ## Open Questions for Next Session
 
-1. **Visual comparison approach:** Full screenshot pipeline (Phase 4a) or manual spot-check (Phase 4b)?
-2. **Which themes to test next?** Are there D7 themes outside the 25 that user wants to validate?
-3. **Moving to production:** If visual parity confirmed, are we ready to recommend theme-machine to users?
+1. **Per-theme layouts:** See `DOC/per-theme-layouts.md` — implement this feature
+2. **Visual comparison approach:** Full screenshot pipeline or manual spot-check? (lower priority now that the layout feature is the clear next step)
+3. **Which themes to test next?** Are there D7 themes outside the 25 that user wants to validate?
 
 ## Blockers & Skips
 
