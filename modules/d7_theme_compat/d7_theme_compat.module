@@ -62,9 +62,12 @@ function _d7_theme_compat_get_template_map() {
  * _layout_get_all_info() prepends the module path automatically.
  */
 function d7_theme_compat_layout_template_info() {
-  $layouts['d7_default'] = array(
-    'title' => t('Drupal 7 Regions'),
-    'path' => 'layouts/d7_default',
+  $tpl_path = 'layouts/d7_default';  // shared template files
+
+  // Fallback: 7 standard D7 regions (used when theme declares no regions).
+  $templates['d7_default'] = array(
+    'title' => t('Drupal 7 Default Regions'),
+    'path' => $tpl_path,
     'regions' => array(
       'header' => t('Header'),
       'highlighted' => t('Highlighted'),
@@ -76,7 +79,34 @@ function d7_theme_compat_layout_template_info() {
     ),
     'default region' => 'content',
   );
-  return $layouts;
+
+  // Per-theme templates: one per enabled D7 theme with declared regions.
+  foreach (list_themes() as $name => $theme) {
+    if (!$theme->status) {
+      continue;
+    }
+    if (!isset($theme->info['core']) || $theme->info['core'] !== '7.x') {
+      continue;
+    }
+    if (empty($theme->info['regions'])) {
+      continue;
+    }
+    $regions = array();
+    foreach ($theme->info['regions'] as $key => $label) {
+      $regions[$key] = t($label);
+    }
+    // Ensure 'content' region always exists.
+    if (!isset($regions['content'])) {
+      $regions['content'] = t('Content');
+    }
+    $templates['d7_theme_' . $name] = array(
+      'title' => t('@name regions', array('@name' => $theme->info['name'])),
+      'path' => $tpl_path,
+      'regions' => $regions,
+      'default region' => 'content',
+    );
+  }
+  return $templates;
 }
 
 /**
@@ -118,6 +148,11 @@ function d7_theme_compat_init() {
   if (isset($themes[$default_theme]->info['core']) && $themes[$default_theme]->info['core'] == '7.x') {
     layout_suppress(TRUE);
 
+    // Sync the Default and Front Page layout instances to use this theme's
+    // layout template. Handles the case where the theme was set via drush/bee
+    // (which doesn't trigger hook_config_update).
+    _d7_theme_compat_sync_layout($default_theme);
+
     // Prevent D7 themes' first-install file operations from crashing.
     // Common pattern: theme checks variable_get('theme_{name}_first_install', TRUE)
     // and if TRUE, runs file_copy() with stdClass objects (D7's file pattern).
@@ -127,6 +162,28 @@ function d7_theme_compat_init() {
       variable_set($install_var, FALSE);
     }
   }
+}
+
+/**
+ * Implements hook_config_update().
+ *
+ * Detects when the default theme is changed to a D7 theme via the admin UI
+ * and syncs the Default and Front Page layout instances to use that theme's
+ * layout template.
+ */
+function d7_theme_compat_config_update(Config $config) {
+  if ($config->getName() !== 'system.core') {
+    return;
+  }
+  $new_theme = $config->get('theme_default');
+  if (empty($new_theme)) {
+    return;
+  }
+  $themes = list_themes();
+  if (!isset($themes[$new_theme]->info['core']) || $themes[$new_theme]->info['core'] !== '7.x') {
+    return;
+  }
+  _d7_theme_compat_sync_layout($new_theme);
 }
 
 /**
@@ -582,6 +639,42 @@ if (!function_exists('_color_page_alter')) {
 // ============================================================================
 // Helper functions
 // ============================================================================
+
+/**
+ * Sync the Default and Front Page layout instances to the active D7 theme.
+ *
+ * When a D7 theme is activated, its layout template (d7_theme_{name}) is set
+ * on the Default and Front Page layouts so that block placement in the Layout
+ * UI reflects the theme's actual declared regions. Falls back to d7_default
+ * if the theme has no declared regions (or its template isn't registered yet).
+ *
+ * The guard clause prevents unnecessary config saves on every request.
+ *
+ * Called from:
+ *   - d7_theme_compat_init() — covers drush/bee theme switches
+ *   - d7_theme_compat_config_update() — covers admin UI theme switches
+ */
+function _d7_theme_compat_sync_layout($theme_name) {
+  if (!function_exists('layout_load')) {
+    return;
+  }
+  $templates = layout_get_layout_template_info();
+  $target = isset($templates['d7_theme_' . $theme_name])
+    ? 'd7_theme_' . $theme_name
+    : 'd7_default';
+
+  foreach (array('default', 'home') as $layout_name) {
+    $layout = layout_load($layout_name);
+    if (!$layout) {
+      continue;
+    }
+    if ($layout->layout_template === $target) {
+      continue;
+    }
+    $layout->layout_template = $target;
+    $layout->save();
+  }
+}
 
 /**
  * Check if the currently active theme is a D7 theme.

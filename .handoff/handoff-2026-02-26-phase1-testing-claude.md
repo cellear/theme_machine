@@ -99,7 +99,30 @@ CLAUDE.md was updated (pulled from remote) with explicit git workflow rules. Fut
 
 Note: this session violated the staging and handoff rules before CLAUDE.md was pulled. The missing handoffs were committed separately with an honest note.
 
-## New Feature: Per-Theme Layout Generation (discussed end of session)
+## New Feature: Per-Theme Layout Generation ✅ IMPLEMENTED
+
+**Status:** COMPLETE. Parts 1 & 2 of the plan successfully implemented and tested.
+
+### Part 1: Dynamic Layout Template Registration (Haiku - DONE)
+- Replaced hardcoded `d7_theme_compat_layout_template_info()` with dynamic version
+- Now registers one layout template per enabled D7 theme, using that theme's declared regions
+- Fallback to `d7_default` (7 standard regions) for themes with no declared regions
+- Verified: 3-theme smoke test passed, no regressions
+
+### Part 2: Layout Instance Sync on Theme Switch (Sonnet - DONE)
+- Added `hook_config_update()` to detect theme changes via admin UI
+- Added `_d7_theme_compat_sync_layout($theme_name)` helper function
+- Called from both `d7_theme_compat_init()` (for drush/bee theme switches) and `hook_config_update()` (for admin UI)
+- Updates Default and Front Page layout instances to use the theme's per-theme template
+- Verified: Full 26-theme smoke test passed with 0 failures
+
+### What This Fixes
+Real-world D7 themes with custom regions (e.g., `featured`, `triptych_first`) can now have blocks placed in those regions via Backdrop's Layout UI. Previously, only 7 hardcoded regions were available, and custom regions couldn't be accessed for block placement.
+
+### Files Modified
+- `modules/d7_theme_compat/d7_theme_compat.module` — added hook implementations and sync logic
+
+## Original Feature Plan (discussed end of session)
 
 **The idea:** Instead of one hardcoded `d7_default` layout with 7 standard regions, auto-generate a layout template per D7 theme using that theme's actual declared regions. This enables block placement in custom regions (e.g., `featured`, `triptych_first`) that real-world D7 themes use.
 
