@@ -1,5 +1,17 @@
-# d7_theme_compat
+# Project Title
 
-d7_theme_compat is the main Backdrop module being developed in this repository. This module serves as a bridge for Drupal 7 themes to become compatible with Backdrop CMS. It allows users to seamlessly transition existing Drupal 7 themes for use within the Backdrop environment.
+## What it is
 
-The rest of the repository includes the development environment and supporting utilities necessary to aid in the module's development.
+d7_theme_compat is the core module currently under development. The rest of the repository serves as the development environment and supporting utilities for this module.
+
+## Requirements
+- List of requirements here.
+
+## Getting started
+- Instructions to get started here.
+
+## Documentation
+- Documentation will be provided here.
+
+## Project structure
+- Overview of the project structure here.
