@@ -35,9 +35,11 @@ async function captureTheme(site, theme) {
   const dir = path.join('screenshots', site, theme);
   fs.mkdirSync(dir, { recursive: true });
 
-  // Clear watchdog before theme switch (Backdrop only)
+  // Clear watchdog before theme switch
   if (site === 'backdrop') {
     tryRun(`ddev bee watchdog-clear`, cfg.projectDir);
+  } else {
+    tryRun(`ddev drush watchdog-delete all -y`, cfg.projectDir);
   }
 
   // Switch theme and clear cache
@@ -53,11 +55,6 @@ async function captureTheme(site, theme) {
   const page = await browser.newPage();
   await page.setViewportSize({ width: 1280, height: 800 });
 
-  // Home page
-  await page.goto(cfg.url + '/', { waitUntil: 'networkidle', timeout: 15000 });
-  await page.screenshot({ path: path.join(dir, 'home.png') });
-  fs.writeFileSync(path.join(dir, 'home.html'), await page.content());
-
   // Content node
   await page.goto(cfg.url + cfg.contentPath, { waitUntil: 'networkidle', timeout: 15000 });
   await page.screenshot({ path: path.join(dir, 'node.png') });
@@ -65,9 +62,9 @@ async function captureTheme(site, theme) {
 
   await browser.close();
 
-  // Check watchdog after render (Backdrop only)
-  // bee log always prints a table header row even with 0 results; strip ANSI
-  // and count actual data rows (lines starting with | that aren't the header).
+  // Check watchdog after render
+  // bee log (Backdrop) always prints a table header even with 0 results; strip ANSI
+  // and count actual data rows (lines starting with | that aren't the header/separator).
   let watchdog = { status: 'n/a', output: '' };
   if (site === 'backdrop') {
     const raw = tryRun(`ddev bee log --count=50 --severity=error --type=php`, cfg.projectDir);
@@ -76,6 +73,19 @@ async function captureTheme(site, theme) {
       .map(l => l.trim())
       .filter(l => l && l.startsWith('|') && !l.includes('| ID |') && !/^\|[-\s|]+\|$/.test(l));
     watchdog = { status: dataLines.length > 0 ? 'errors' : 'clean', output: dataLines.join('\n') };
+  } else if (site === 'd7') {
+    const raw = tryRun(`ddev drush watchdog-show --severity=error --count=50`, cfg.projectDir);
+    const stripped = raw.replace(/\x1b\[[0-9;]*m/g, '').trim();
+    // No entries: drush outputs nothing or "There are no..." type message
+    if (!stripped || /no (log |watchdog )?messages/i.test(stripped) || /there are no/i.test(stripped)) {
+      watchdog = { status: 'clean', output: '' };
+    } else {
+      // Skip the header row (contains "WID") and separator rows (all dashes/spaces)
+      const dataLines = stripped.split('\n')
+        .map(l => l.trim())
+        .filter(l => l && !/^WID\b/.test(l) && !/^-{3,}/.test(l));
+      watchdog = { status: dataLines.length > 0 ? 'errors' : 'clean', output: dataLines.join('\n') };
+    }
   }
 
   return { site, theme, dir, watchdog };
