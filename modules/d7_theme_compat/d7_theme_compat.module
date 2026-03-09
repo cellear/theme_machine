@@ -370,18 +370,36 @@ function d7_theme_compat_theme_registry_alter(&$registry) {
 
   // Step 4: Ensure the 'html' hook exists in the registry.
   // Backdrop removed html.tpl.php, so the 'html' hook may not be registered.
+  // We build the preprocess chain explicitly because Backdrop won't auto-add
+  // {theme}_preprocess_html() for a hook we create here (unlike hooks that
+  // existed in Backdrop's registry before this alter function ran).
   if (!isset($registry['html']) && isset($template_map['html'])) {
+    global $theme;
+    $html_preprocess = array(
+      '_d7_theme_compat_setup_variables',
+      '_d7_theme_compat_preprocess_html',
+    );
+    // Add the theme's own preprocess_html if it exists. template.php was
+    // already loaded by _d7_theme_compat_register_theme_functions() (step 3).
+    if (function_exists($theme . '_preprocess_html')) {
+      $html_preprocess[] = $theme . '_preprocess_html';
+    }
+    // D7 process layer (removed in Backdrop).
+    if (function_exists($theme . '_process_html')) {
+      $html_preprocess[] = $theme . '_process_html';
+    }
+    $html_preprocess[] = '_d7_theme_compat_flatten_variables';
+    // finalize_html runs last: collects CSS/JS after all theme preprocess
+    // functions (e.g. academia_preprocess_html adding layout.css) have run.
+    $html_preprocess[] = '_d7_theme_compat_finalize_html';
+
     $registry['html'] = array(
       'template' => 'html',
       'path' => $template_map['html'],
       'type' => 'module',
       'theme path' => backdrop_get_path('module', 'd7_theme_compat'),
       'variables' => array('page' => NULL),
-      'preprocess functions' => array(
-        '_d7_theme_compat_setup_variables',
-        '_d7_theme_compat_preprocess_html',
-        '_d7_theme_compat_flatten_variables',
-      ),
+      'preprocess functions' => $html_preprocess,
     );
   }
 }
@@ -470,10 +488,22 @@ function d7_theme_compat_preprocess_page(&$variables) {
   }
 
   // Logo.
-  $variables['logo'] = theme_get_setting('logo');
+  // theme_get_setting('logo') resolves per-theme settings and falls back to
+  // the theme's own logo.png — but D7 themes on Backdrop rarely have either.
+  // Read Backdrop's global logo setting from system.core as a reliable source.
+  if (!config_get('system.core', 'site_logo_theme')) {
+    $logo_path = config_get('system.core', 'site_logo_path');
+    $variables['logo'] = $logo_path ? file_create_url($logo_path) : theme_get_setting('logo');
+  }
+  else {
+    $variables['logo'] = theme_get_setting('logo');
+  }
 
   // Site name and slogan.
-  $variables['site_name'] = (theme_get_setting('toggle_name') ? check_plain($site_config->getTranslated('site_name')) : '');
+  // Always output site_name — D7 themes control the display toggle in their
+  // own page.tpl.php. theme_get_setting('toggle_name') is unreliable for D7
+  // themes that have no Backdrop theme settings config file.
+  $variables['site_name'] = check_plain($site_config->getTranslated('site_name'));
   $variables['site_slogan'] = (theme_get_setting('toggle_slogan') ? check_plain($site_config->getTranslated('site_slogan')) : '');
 
   // Navigation menus.
@@ -510,6 +540,14 @@ function d7_theme_compat_preprocess_page(&$variables) {
   if (!empty($variables['page']['sidebar_second'])) {
     $variables['layout'] = ($variables['layout'] == 'first') ? 'both' : 'second';
   }
+
+  // Pass layout to html preprocessing via static storage.
+  // D7's system_preprocess_html() reads $page['sidebar_first/second'] directly,
+  // but in our delivery callback, theme('html') receives a rendered string, not
+  // the page render array. Store the layout here so _d7_theme_compat_preprocess_html()
+  // can add the correct body classes (two-sidebars, one-sidebar, etc.).
+  $stored_layout = &backdrop_static('d7_compat_page_layout');
+  $stored_layout = $variables['layout'];
 
   // Node object if on a node page.
   if ($node = menu_get_object()) {
@@ -571,6 +609,27 @@ function _d7_theme_compat_preprocess_html(&$variables) {
     $variables['classes_array'][] = backdrop_html_class('node-type-' . $node->type);
   }
 
+  // Sidebar layout body classes — replicates D7's system_preprocess_html().
+  // D7's system module adds two-sidebars / one-sidebar / no-sidebars to the
+  // body class, which themes use to activate CSS column layouts.
+  $layout = backdrop_static('d7_compat_page_layout', 'none');
+  switch ($layout) {
+    case 'both':
+      $variables['classes_array'][] = 'two-sidebars';
+      break;
+    case 'first':
+      $variables['classes_array'][] = 'one-sidebar';
+      $variables['classes_array'][] = 'sidebar-first';
+      break;
+    case 'second':
+      $variables['classes_array'][] = 'one-sidebar';
+      $variables['classes_array'][] = 'sidebar-second';
+      break;
+    default:
+      $variables['classes_array'][] = 'no-sidebars';
+      break;
+  }
+
   // Language and direction.
   // D7 templates use $language->language; Backdrop uses $language->langcode.
   $variables['language'] = clone $GLOBALS['language'];
@@ -609,12 +668,29 @@ function _d7_theme_compat_preprocess_html(&$variables) {
   $variables['head_title_array'] = $head_title;
   $variables['head_title'] = implode(' | ', $head_title);
 
-  // Variables from D7's template_process_html() (theme.inc:2760).
-  // These are normally set in the process layer which Backdrop removed.
+  // NOTE: styles/scripts/head are intentionally NOT set here.
+  // They are collected in _d7_theme_compat_finalize_html(), which runs AFTER
+  // all theme preprocess functions (e.g. academia_preprocess_html adding layout.css).
+  // Collecting here would miss any CSS/JS added by the theme's own preprocess.
+  $variables['page_top'] = '';
+}
+
+/**
+ * Late preprocess for the html hook: collect CSS/JS/head after all theme
+ * preprocess functions have run.
+ *
+ * D7 themes add CSS and JS in their preprocess_html functions (e.g.
+ * academia_preprocess_html calls drupal_add_css() to add layout.css). This
+ * function runs last in the html preprocess chain so that any CSS/JS added
+ * by the theme is included in $styles and $scripts.
+ */
+function _d7_theme_compat_finalize_html(&$variables) {
+  if (!_d7_theme_compat_is_d7_theme()) {
+    return;
+  }
   $variables['head'] = backdrop_get_html_head();
   $variables['styles'] = backdrop_get_css();
   $variables['scripts'] = backdrop_get_js();
-  $variables['page_top'] = '';
   $variables['page_bottom'] = backdrop_get_js('footer');
 }
 
@@ -669,6 +745,14 @@ function _d7_theme_compat_sync_layout($theme_name) {
       continue;
     }
     if ($layout->layout_template === $target) {
+      continue;
+    }
+    // Respect a manual pin to d7_default. If the admin has selected the
+    // standard D7 regions template, don't override it when the active theme
+    // changes. This allows block placement to stay stable during rapid theme
+    // switching (e.g., automated testing) while still auto-syncing per-theme
+    // layouts for sites that want them.
+    if ($layout->layout_template === 'd7_default') {
       continue;
     }
     $layout->layout_template = $target;

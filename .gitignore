@@ -34,5 +34,10 @@ backdrop/themes/
 # Misc files
 Context.docx
 
+# Sprint 1 generated output
+node_modules/
+screenshots/
+reports/
+
 # Backdrop's original git metadata (renamed to avoid submodule behavior)
 backdrop/.git.original/

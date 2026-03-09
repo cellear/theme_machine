@@ -1,0 +1,24 @@
+{
+  "name": "theme-machine",
+  "version": "1.0.0",
+  "description": "A Backdrop CMS project that makes Drupal 7 themes run on Backdrop — with a suite of utility modules built to support the workflow.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cellear/theme_machine.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/cellear/theme_machine/issues"
+  },
+  "homepage": "https://github.com/cellear/theme_machine#readme",
+  "dependencies": {
+    "playwright": "^1.58.2"
+  }
+}
