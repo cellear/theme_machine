@@ -117,11 +117,11 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: #1a1a
 .wd-na     { background: #555; }
 
 /* ---- screenshots area ---- */
-#screenshots { flex: 1; display: flex; gap: 0; overflow: hidden; }
-.screenshot-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid #0f3460; }
+#screenshots { flex: none; height: 70vh; display: flex; gap: 0; overflow: hidden; }
+.screenshot-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; border-right: 1px solid #0f3460; }
 .screenshot-panel:last-child { border-right: none; }
-.panel-label { padding: 5px 12px; font-size: 11px; font-weight: bold; background: #16213e; color: #a0c4ff; letter-spacing: .5px; display: flex; align-items: center; gap: 8px; }
-.screenshot-img-wrap { flex: 1; overflow: auto; display: flex; align-items: flex-start; justify-content: center; background: #111; }
+.panel-label { padding: 5px 12px; font-size: 11px; font-weight: bold; background: #16213e; color: #a0c4ff; letter-spacing: .5px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.screenshot-img-wrap { flex: 1; min-height: 0; overflow: auto; display: flex; align-items: flex-start; justify-content: center; background: #111; }
 .screenshot-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
 .no-screenshot { color: #555; font-size: 13px; align-self: center; }
 
@@ -133,6 +133,7 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: #1a1a
 #btn-accept     { background: #16a34a; color: #fff; }
 #btn-reject     { background: #dc2626; color: #fff; }
 #btn-needs-work { background: #d97706; color: #fff; }
+#btn-skip       { background: #374151; color: #9ca3af; }
 #notes-wrap { flex: 1; display: flex; align-items: center; gap: 8px; }
 #notes-label { font-size: 12px; color: #7ec8e3; white-space: nowrap; }
 #notes-input { flex: 1; background: #0f3460; border: 1px solid #2563ab; color: #e0e0e0; padding: 5px 10px; border-radius: 4px; font-size: 12px; resize: none; height: 34px; }
@@ -184,6 +185,7 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: #1a1a
       <button id="btn-accept"     class="verdict-btn" title="A">Accept</button>
       <button id="btn-reject"     class="verdict-btn" title="R">Reject</button>
       <button id="btn-needs-work" class="verdict-btn" title="W">Needs Work</button>
+      <button id="btn-skip"       class="verdict-btn" title="S">Skip</button>
       <div id="notes-wrap">
         <label id="notes-label" for="notes-input">N → Notes:</label>
         <textarea id="notes-input" placeholder="Optional notes…"></textarea>
@@ -191,7 +193,7 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: #1a1a
       <button id="export-btn">Export JSON</button>
       <button id="import-btn">Import JSON</button>
       <input type="file" id="import-file" accept=".json">
-      <span id="kbd-hints">← → navigate &nbsp; A accept &nbsp; R reject &nbsp; W needs-work &nbsp; N notes</span>
+      <span id="kbd-hints">← → navigate &nbsp; A accept &nbsp; R reject &nbsp; W needs-work &nbsp; S skip &nbsp; N notes</span>
     </div>
   </div>
 </div>
@@ -377,6 +379,7 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: #1a1a
   btnAccept.addEventListener('click',    () => setVerdict('accept'));
   btnReject.addEventListener('click',    () => setVerdict('reject'));
   btnNeedsWork.addEventListener('click', () => setVerdict('needs-work'));
+  document.getElementById('btn-skip').addEventListener('click', () => goTo(current + 1));
   document.getElementById('nav-prev').addEventListener('click', () => goTo(current - 1));
   document.getElementById('nav-next').addEventListener('click', () => goTo(current + 1));
   document.getElementById('toggle-sidebar').addEventListener('click', () => {
@@ -392,6 +395,7 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: #1a1a
       case 'a': case 'A': setVerdict('accept'); break;
       case 'r': case 'R': setVerdict('reject'); break;
       case 'w': case 'W': setVerdict('needs-work'); break;
+      case 's': case 'S': goTo(current + 1); break;
       case 'n': case 'N': notesInput.focus(); break;
     }
   });
