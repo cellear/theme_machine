@@ -5,8 +5,15 @@ const fs = require('fs');
 const { captureTheme, config } = require('./screenshot');
 
 const THEMES = [
-  'academia', 'biz', 'bluebreeze', 'classic_blog', 'fold',
-  'modern_theme', 'plasma', 'simpleclean', 'tarski', 'touch',
+  'academia', 'adaptic', 'addari', 'adelante', 'arti',
+  'b2_drupal_plus', 'bartik_fb', 'biz', 'black_lagoon', 'bluebreeze',
+  'bluefreedom3', 'changeme', 'classic_blog', 'clean_theme', 'colorfulness_theme',
+  'elegant_blue', 'fdt_grey', 'fdt_yellow', 'fold', 'havasu',
+  'icandy', 'jq_theme', 'lexi_responsive_theme', 'lightword', 'mfirst',
+  'modern_theme', 'nigraphic', 'parish_theme', 'plasma', 'professional_pro',
+  'professional_responsive_theme', 'redsalute', 'responsive_green', 'sankofa', 'shakennotstirred',
+  'simpleclean', 'simpler', 'sirbones', 'superclean', 'talata',
+  'tarski', 'templist', 'themage', 'touch', 'zebilla',
 ];
 
 function tryRun(cmd, cwd) {
@@ -58,6 +65,23 @@ function watchdogSection(watchdog) {
 }
 
 function buildReport(results) {
+  // Compute summary counts
+  let clean = 0, errors = 0, failed = 0;
+  results.forEach(({ d7, backdrop }) => {
+    if (d7.error || backdrop.error) {
+      failed++;
+    } else {
+      const d7w = (d7.watchdog || {}).status;
+      const bdw = (backdrop.watchdog || {}).status;
+      if (d7w === 'errors' || bdw === 'errors') errors++;
+      else clean++;
+    }
+  });
+
+  const tocItems = results.map(({ theme }) =>
+    `<li><a href="#theme-${theme}">${theme}</a></li>`
+  ).join('\n      ');
+
   const rows = results.map(({ theme, d7, backdrop }) => {
     const mkCol = (site, data) => {
       const label = site === 'd7' ? 'Drupal 7' : 'Backdrop';
@@ -70,8 +94,8 @@ function buildReport(results) {
       return `${header}${img}${watchdogSection(wdg)}`;
     };
 
-    return `<div class="theme">
-  <h2>${theme}</h2>
+    return `<div class="theme" id="theme-${theme}">
+  <div class="theme-sticky-header"><span class="theme-name">${theme}</span></div>
   <div class="cols">
     <div class="col">${mkCol('d7', d7)}</div>
     <div class="col">${mkCol('backdrop', backdrop)}</div>
@@ -84,10 +108,21 @@ function buildReport(results) {
 <title>Theme Machine — D7 vs Backdrop</title>
 <style>
   body{font-family:sans-serif;margin:20px;background:#f4f4f4}
-  h1{text-align:center}
-  .theme{background:#fff;margin:20px 0;padding:16px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.15)}
-  .theme h2{margin:0 0 12px}
-  .cols{display:flex;gap:20px}
+  h1{text-align:center;margin-bottom:4px}
+  .summary{text-align:center;margin:0 0 16px;font-size:14px;color:#555}
+  .summary .c-clean{color:#2a9d2a;font-weight:bold}
+  .summary .c-errors{color:#d68a00;font-weight:bold}
+  .summary .c-failed{color:#d62c2c;font-weight:bold}
+  .toc{background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.12);padding:16px 20px;margin-bottom:20px}
+  .toc h2{margin:0 0 10px;font-size:15px;color:#333}
+  .toc ol{margin:0;padding-left:20px;columns:4;column-gap:20px;font-size:13px}
+  .toc ol li{break-inside:avoid}
+  .toc a{color:#1a6bb5;text-decoration:none}
+  .toc a:hover{text-decoration:underline}
+  .theme{background:#fff;margin:20px 0;padding:0;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.15);overflow:hidden}
+  .theme-sticky-header{position:sticky;top:0;z-index:10;background:#2c3e50;color:#fff;padding:8px 16px;font-weight:bold;font-size:15px}
+  .theme-name{display:inline-block}
+  .cols{display:flex;gap:20px;padding:16px}
   .col{flex:1}
   .col h3{margin:0 0 8px;display:flex;align-items:center;gap:8px}
   .col img{width:100%;display:block;border:1px solid #ddd}
@@ -100,7 +135,18 @@ function buildReport(results) {
 </style>
 </head><body>
 <h1>Theme Machine — D7 vs Backdrop</h1>
-<p style="text-align:center">Generated: ${new Date().toISOString()} &nbsp;|&nbsp; ${results.length} themes</p>
+<p class="summary">
+  Generated: ${new Date().toISOString()} &nbsp;|&nbsp; ${results.length} themes &nbsp;|&nbsp;
+  <span class="c-clean">${clean} clean</span> /
+  <span class="c-errors">${errors} errors</span> /
+  <span class="c-failed">${failed} failed</span>
+</p>
+<nav class="toc">
+  <h2>Themes</h2>
+  <ol>
+      ${tocItems}
+  </ol>
+</nav>
 ${rows.join('\n')}
 </body></html>`;
 }
@@ -114,8 +160,9 @@ async function main() {
 
   const results = [];
   try {
-    for (const theme of THEMES) {
-      console.log(`\n[${theme}]`);
+    for (let i = 0; i < THEMES.length; i++) {
+      const theme = THEMES[i];
+      console.log(`\n[${i + 1}/${THEMES.length}] Processing: ${theme}...`);
       const row = { theme, d7: {}, backdrop: {} };
 
       for (const site of ['d7', 'backdrop']) {
