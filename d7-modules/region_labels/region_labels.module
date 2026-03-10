@@ -1,0 +1,118 @@
+<?php
+
+/**
+ * @file
+ * Overlays dashed borders and name labels on each page region.
+ *
+ * Port of the Backdrop region_labels module for Drupal 7.
+ *
+ * Enable:  ddev drush en region_labels -y
+ * Disable: ddev drush dis region_labels -y
+ * After either: ddev drush cc all
+ */
+
+/**
+ * Standard D7 region machine names to label.
+ */
+function _region_labels_regions() {
+  return array(
+    'header',
+    'highlighted',
+    'help',
+    'content',
+    'sidebar_first',
+    'sidebar_second',
+    'footer',
+  );
+}
+
+/**
+ * CSS injected into every page when the module is enabled.
+ */
+function _region_labels_css() {
+  return '
+.region-labels-wrapper {
+  position: relative;
+  outline: 2px dashed rgba(220, 38, 38, 0.6);
+  outline-offset: -2px;
+  min-height: 4px;
+}
+.region-labels-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  background: rgba(30, 30, 30, 0.82);
+  color: #fff;
+  font: bold 10px/1 monospace;
+  padding: 2px 6px;
+  border-bottom-right-radius: 4px;
+  pointer-events: none;
+  white-space: nowrap;
+  letter-spacing: .5px;
+}
+';
+}
+
+/**
+ * Implements hook_page_build().
+ *
+ * Wraps each recognised region in a div with a dashed outline and a small
+ * label badge. Uses hook_page_build() so it fires for every theme without
+ * requiring per-theme block placement.
+ */
+function region_labels_page_build(&$page) {
+  // Inject CSS inline so it is available regardless of aggregation settings.
+  drupal_add_css(_region_labels_css(), array(
+    'type'   => 'inline',
+    'group'  => CSS_SYSTEM,
+    'weight' => -100,
+  ));
+
+  foreach (_region_labels_regions() as $region) {
+    if (isset($page[$region])) {
+      $page[$region]['region_label_' . $region] = array(
+        '#markup' => '<div class="region-labels-badge">' . check_plain($region) . '</div>',
+        '#weight' => -9999,
+      );
+
+      if (!isset($page[$region]['#prefix'])) {
+        $page[$region]['#prefix'] = '';
+      }
+      if (!isset($page[$region]['#suffix'])) {
+        $page[$region]['#suffix'] = '';
+      }
+      $page[$region]['#prefix'] = '<div class="region-labels-wrapper">' . $page[$region]['#prefix'];
+      $page[$region]['#suffix'] = $page[$region]['#suffix'] . '</div>';
+    }
+  }
+}
+
+/**
+ * Implements hook_block_info().
+ *
+ * Registers one labeller block per region so they can also be placed
+ * manually via admin/structure/block.
+ */
+function region_labels_block_info() {
+  $blocks = array();
+  foreach (_region_labels_regions() as $region) {
+    $blocks[$region] = array(
+      'info'  => t('Region label: @region', array('@region' => $region)),
+      'cache' => DRUPAL_CACHE_GLOBAL,
+    );
+  }
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function region_labels_block_view($delta = '') {
+  return array(
+    'subject' => NULL,
+    'content'  => array(
+      '#markup' => '<div class="region-labels-badge">' . check_plain($delta) . '</div>',
+    ),
+  );
+}

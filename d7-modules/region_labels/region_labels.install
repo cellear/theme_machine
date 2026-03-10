@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * @file
+ * Install/uninstall hooks for region_labels.
+ *
+ * hook_install() places blocks via the {block} table.
+ * hook_uninstall() cleans them up.
+ *
+ * Note: hook_page_build() in region_labels.module handles the actual
+ * label injection — block placement is provided as a bonus for use
+ * via admin/structure/block.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function region_labels_install() {
+  $regions = array('header', 'highlighted', 'help', 'content', 'sidebar_first', 'sidebar_second', 'footer');
+  $themes  = array_keys(list_themes(TRUE));
+
+  foreach ($themes as $theme) {
+    foreach ($regions as $region) {
+      db_merge('block')
+        ->key(array(
+          'module' => 'region_labels',
+          'delta'  => $region,
+          'theme'  => $theme,
+        ))
+        ->fields(array(
+          'status' => 1,
+          'weight' => -50,
+          'region' => $region,
+          'pages'  => '',
+          'cache'  => -1,
+        ))
+        ->execute();
+    }
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function region_labels_uninstall() {
+  db_delete('block')->condition('module', 'region_labels')->execute();
+}

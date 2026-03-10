@@ -1,0 +1,4 @@
+name = Region Labels
+description = Overlays dashed borders and name labels on each page region. Useful for theme QA screenshots.
+core = 7.x
+package = Development

@@ -1,0 +1,5 @@
+name = Region Labels
+description = Overlays dashed borders and name labels on each page region. Useful for theme QA screenshots.
+type = module
+backdrop = 1.x
+package = Development

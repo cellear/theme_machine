@@ -1,0 +1,136 @@
+<?php
+
+/**
+ * @file
+ * Overlays dashed borders and name labels on each page region.
+ *
+ * Works with both native Backdrop themes and D7 themes running through
+ * d7_theme_compat (which bypasses the Layout module). Injection is done
+ * via hook_page_build() so it fires regardless of whether Layout is active.
+ *
+ * Standard D7 regions targeted: header, highlighted, help, content,
+ * sidebar_first, sidebar_second, footer.
+ *
+ * Enable:  ddev bee en region_labels
+ * Disable: ddev bee dis region_labels
+ * After either: ddev bee cc all
+ */
+
+/**
+ * Standard D7/Backdrop region machine names to label.
+ */
+function _region_labels_regions() {
+  return array(
+    'header',
+    'highlighted',
+    'help',
+    'content',
+    'sidebar_first',
+    'sidebar_second',
+    'footer',
+  );
+}
+
+/**
+ * CSS injected into every page when the module is enabled.
+ *
+ * Uses position:relative on the region and position:absolute on the label
+ * so the label floats in the top-left corner without disturbing layout.
+ * The dashed outline is added via outline (not border) to avoid shifting
+ * surrounding elements.
+ */
+function _region_labels_css() {
+  return '
+<style id="region-labels-css">
+/* Region labels — Theme Machine QA overlay */
+.region-labels-wrapper {
+  position: relative;
+  outline: 2px dashed rgba(220, 38, 38, 0.6);
+  outline-offset: -2px;
+  min-height: 4px;
+}
+.region-labels-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  background: rgba(30, 30, 30, 0.82);
+  color: #fff;
+  font: bold 10px/1 monospace;
+  padding: 2px 6px;
+  border-bottom-right-radius: 4px;
+  pointer-events: none;
+  white-space: nowrap;
+  letter-spacing: .5px;
+}
+</style>';
+}
+
+/**
+ * Implements hook_page_build().
+ *
+ * Wraps each recognised region in a div with a dashed outline and a small
+ * label badge. Works on D7-compat theme pages because hook_page_build() fires
+ * before backdrop_render_page() assembles the final HTML.
+ */
+function region_labels_page_build(&$page) {
+  // Inject the CSS once via the html_head element so it appears in <head>
+  // regardless of which theme is active.
+  $page['#attached']['html_head'][] = array(
+    array(
+      '#type' => 'markup',
+      '#markup' => _region_labels_css(),
+    ),
+    'region_labels_css',
+  );
+
+  foreach (_region_labels_regions() as $region) {
+    if (isset($page[$region])) {
+      // Add a wrapper and label element at the top of this region.
+      $page[$region]['region_label_' . $region] = array(
+        '#markup' => '<div class="region-labels-badge">' . check_plain($region) . '</div>',
+        '#weight' => -9999,
+      );
+
+      // Add the wrapper class to the region render array so the CSS
+      // outline applies. #prefix/#suffix wrap the entire rendered region.
+      if (!isset($page[$region]['#prefix'])) {
+        $page[$region]['#prefix'] = '';
+      }
+      if (!isset($page[$region]['#suffix'])) {
+        $page[$region]['#suffix'] = '';
+      }
+      $page[$region]['#prefix'] = '<div class="region-labels-wrapper">' . $page[$region]['#prefix'];
+      $page[$region]['#suffix'] = $page[$region]['#suffix'] . '</div>';
+    }
+  }
+}
+
+/**
+ * Implements hook_block_info().
+ *
+ * Registers one labeller block per region for use with native Backdrop
+ * themes that use the Layout system (not suppressed by d7_theme_compat).
+ */
+function region_labels_block_info() {
+  $blocks = array();
+  foreach (_region_labels_regions() as $region) {
+    $blocks[$region] = array(
+      'info'   => t('Region label: @region', array('@region' => $region)),
+      'cache'  => BACKDROP_CACHE_GLOBAL,
+    );
+  }
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function region_labels_block_view($delta = '') {
+  return array(
+    'subject' => NULL,
+    'content'  => array(
+      '#markup' => '<div class="region-labels-badge">' . check_plain($delta) . '</div>',
+    ),
+  );
+}
