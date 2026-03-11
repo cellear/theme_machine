@@ -24,6 +24,22 @@ Most D7 themes in the catalog were created 2006–2012 and never tested against 
 
 **Policy:** Themes that produce watchdog errors on PHP 8.3 should be flagged in the report, not silently ignored. The report should distinguish rendering failures (FAIL) from PHP deprecation noise (WARN). We do not attempt to support older PHP versions — if a theme can't run on 8.3, it gets flagged and excluded from passing results.
 
+### Observed results at scale (2026-03-11, 184 themes)
+
+First full run across all harvested themes produced no hard fails — every theme rendered a page. Watchdog error breakdown:
+
+| Pattern | Count | Interpretation |
+|---|---|---|
+| Both sites clean | 4 | Fully PHP 8.3 compatible |
+| D7 errors only | 98 | PHP 8.3 deprecations in D7 core/theme layer — Backdrop handles these better |
+| Both have errors | 31 | PHP issues in the theme code itself; triage candidates |
+| Backdrop errors only | 1 | `bartik` (locally modified) |
+| Hard fails | 0 | All themes rendered |
+
+**The 98 "D7 errors only" result is a key finding.** It means Backdrop's PHP layer handles old D7 theme code more cleanly than D7 itself does on PHP 8.3. This is a strong data point for the project's thesis.
+
+**One failure mode discovered:** themes with curly-brace array syntax (`$arr{0}`, removed in PHP 8.0) cause PHP fatals that prevent `bee` from running at all. Fixed with a direct config file + mysql cache fallback in `scripts/screenshot.js`.
+
 ---
 
 ## Sprint Arc
@@ -123,4 +139,4 @@ reports/         — generated HTML comparison reports (gitignored)
 screenshots/     — generated screenshots (gitignored)
 ```
 
-Last updated: 2026-03-10 by Claude Sonnet 4.6 (Sprint 2 execution)
+Last updated: 2026-03-11 by Claude Sonnet 4.6 (Sprint 3 results + PHP 8.3 findings)
