@@ -5,11 +5,11 @@ const fs = require('fs');
 const { captureTheme, config } = require('./screenshot');
 
 const THEMES = [
-  'academia', 'adaptic', 'b2_drupal_plus',
-  'biz', 'black_lagoon', 'bluebreeze', 'bluefreedom3', 'changeme',
-  'clean_theme', 'colorfulness_theme', 'elegant_blue', 'fdt_grey', 'fold',
-  'havasu', 'lexi_responsive_theme', 'mfirst', 'modern_theme', 'plasma', 'professional_pro', 'professional_responsive_theme', 'responsive_green', 'sankofa',
-  'simpleclean', 'simpler', 'sirbones', 'talata', 'tarski',
+  'academia', 'adaptic', 'alphorn', 'b2_drupal_plus', 'bartik', 'beta',
+  'biz', 'black_lagoon', 'bluebreeze', 'bluefreedom3', 'bootstrap', 'chamfer', 'changeme',
+  'chocotheme', 'clean_theme', 'colorfulness_theme', 'corolla', 'danland', 'elegant_blue', 'fdt_grey', 'fold',
+  'havasu', 'koi', 'lexi_responsive_theme', 'mfirst', 'modern_theme', 'plasma', 'professional_pro', 'professional_responsive_theme', 'responsive_green', 'sankofa',
+  'simpleclean', 'simpler', 'sirbones', 'smashing_dilectio', 'talata', 'tarski',
   'themage', 'touch', 'zebilla',
 ];
 
