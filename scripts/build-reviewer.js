@@ -117,12 +117,12 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: #1a1a
 .wd-na     { background: #555; }
 
 /* ---- screenshots area ---- */
-#screenshots { flex: 1; display: flex; gap: 0; min-height: 0; }
-.screenshot-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; border-right: 1px solid #0f3460; }
+#screenshots { flex: 1; display: flex; gap: 0; min-height: 0; overflow: hidden; }
+.screenshot-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid #0f3460; }
 .screenshot-panel:last-child { border-right: none; }
 .panel-label { padding: 5px 12px; font-size: 11px; font-weight: bold; background: #16213e; color: #a0c4ff; letter-spacing: .5px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.screenshot-img-wrap { flex: 1; overflow: hidden; min-height: 0; background: #111; }
-.screenshot-img-wrap img { height: 100%; width: auto; display: block; }
+.screenshot-img-wrap { flex: 1; overflow-y: auto; overflow-x: hidden; background: #111; }
+.screenshot-img-wrap img { width: 100%; height: auto; display: block; }
 .no-screenshot { color: #555; font-size: 13px; align-self: center; }
 
 /* ---- verdict bar ---- */
