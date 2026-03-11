@@ -7,6 +7,10 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 
+// Backdrop active config file — path contains an md5 hash of the DB settings.
+// Stable for this project. Used as fallback when bee fails (PHP fatal in theme).
+const BACKDROP_CONFIG_JSON = path.join(ROOT, 'backdrop/files/config_152f5614c0b20abf0caba0ca2e5bbe8c/active/system.core.json');
+
 const config = {
   d7: {
     url: 'https://drupal-7.ddev.site',
@@ -30,6 +34,27 @@ function tryRun(cmd, cwd) {
   try { return run(cmd, cwd); } catch (e) { return ''; }
 }
 
+// Direct fallback for when a PHP-fatal theme blocks all bee commands.
+// Edits system.core.json on the host filesystem and truncates cache tables
+// via mysql — no PHP involved, so a broken theme can't prevent recovery.
+function setBackdropThemeDirect(theme, projectDir) {
+  const cfg = JSON.parse(fs.readFileSync(BACKDROP_CONFIG_JSON, 'utf8'));
+  cfg.theme_default = theme;
+  fs.writeFileSync(BACKDROP_CONFIG_JSON, JSON.stringify(cfg, null, 2) + '\n');
+  tryRun(`ddev mysql -e "TRUNCATE TABLE cache; TRUNCATE TABLE cache_bootstrap; TRUNCATE TABLE cache_page;"`, projectDir);
+  console.warn(`  Direct config edit: theme_default set to ${theme}`);
+}
+
+function setBackdropTheme(theme, projectDir) {
+  try {
+    run(`ddev bee config-set system.core theme_default ${theme}`, projectDir);
+    run(`ddev bee cache-clear`, projectDir);
+  } catch (e) {
+    console.warn(`  bee failed (PHP fatal in current theme?), falling back to direct config edit`);
+    setBackdropThemeDirect(theme, projectDir);
+  }
+}
+
 async function captureTheme(site, theme) {
   const cfg = config[site];
   const dir = path.join('screenshots', site, theme);
@@ -47,8 +72,7 @@ async function captureTheme(site, theme) {
     run(`ddev drush vset theme_default ${theme}`, cfg.projectDir);
     run(`ddev drush cc all`, cfg.projectDir);
   } else {
-    run(`ddev bee config-set system.core theme_default ${theme}`, cfg.projectDir);
-    run(`ddev bee cache-clear`, cfg.projectDir);
+    setBackdropTheme(theme, cfg.projectDir);
   }
 
   const browser = await chromium.launch();
@@ -101,4 +125,4 @@ if (require.main === module) {
     .catch(e => { console.error(e.message); process.exit(1); });
 }
 
-module.exports = { captureTheme, config };
+module.exports = { captureTheme, config, setBackdropTheme };

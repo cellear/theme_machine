@@ -2,7 +2,7 @@
 
 const { execSync } = require('child_process');
 const fs = require('fs');
-const { captureTheme, config } = require('./screenshot');
+const { captureTheme, config, setBackdropTheme } = require('./screenshot');
 
 const THEMES = [
   'a_cloudy_day', 'abaca', 'abarre', 'aberdeen', 'abessive', 'ablock',
@@ -61,8 +61,7 @@ function restoreTheme(site, theme) {
     tryRun(`ddev drush vset theme_default ${theme}`, cfg.projectDir);
     tryRun(`ddev drush cc all`, cfg.projectDir);
   } else {
-    tryRun(`ddev bee config-set system.core theme_default ${theme}`, cfg.projectDir);
-    tryRun(`ddev bee cache-clear`, cfg.projectDir);
+    setBackdropTheme(theme, cfg.projectDir);
   }
 }
 
