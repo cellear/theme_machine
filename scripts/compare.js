@@ -5,15 +5,12 @@ const fs = require('fs');
 const { captureTheme, config } = require('./screenshot');
 
 const THEMES = [
-  'academia', 'adaptic', 'addari', 'adelante', 'arti',
-  'b2_drupal_plus', 'bartik_fb', 'biz', 'black_lagoon', 'bluebreeze',
-  'bluefreedom3', 'changeme', 'classic_blog', 'clean_theme', 'colorfulness_theme',
-  'elegant_blue', 'fdt_grey', 'fdt_yellow', 'fold', 'havasu',
-  'icandy', 'jq_theme', 'lexi_responsive_theme', 'lightword', 'mfirst',
-  'modern_theme', 'nigraphic', 'parish_theme', 'plasma', 'professional_pro',
-  'professional_responsive_theme', 'redsalute', 'responsive_green', 'sankofa', 'shakennotstirred',
-  'simpleclean', 'simpler', 'sirbones', 'superclean', 'talata',
-  'tarski', 'templist', 'themage', 'touch', 'zebilla',
+  'academia', 'adaptic', 'b2_drupal_plus',
+  'biz', 'black_lagoon', 'bluebreeze', 'bluefreedom3', 'changeme',
+  'clean_theme', 'colorfulness_theme', 'elegant_blue', 'fdt_grey', 'fold',
+  'havasu', 'lexi_responsive_theme', 'mfirst', 'modern_theme', 'plasma', 'professional_pro', 'professional_responsive_theme', 'responsive_green', 'sankofa',
+  'simpleclean', 'simpler', 'sirbones', 'talata', 'tarski',
+  'themage', 'touch', 'zebilla',
 ];
 
 function tryRun(cmd, cwd) {

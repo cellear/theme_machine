@@ -1,0 +1,133 @@
+{
+  "generated": "2026-03-11T06:27:28.345Z",
+  "criteria": [
+    "no PHP 8.3 watchdog errors",
+    "theme declares both a left-ish and right-ish sidebar region (or no regions block)"
+  ],
+  "total": 45,
+  "ok": [
+    "academia",
+    "adaptic",
+    "b2_drupal_plus",
+    "biz",
+    "black_lagoon",
+    "bluebreeze",
+    "bluefreedom3",
+    "changeme",
+    "clean_theme",
+    "colorfulness_theme",
+    "elegant_blue",
+    "fdt_grey",
+    "fold",
+    "havasu",
+    "lexi_responsive_theme",
+    "mfirst",
+    "modern_theme",
+    "plasma",
+    "professional_pro",
+    "professional_responsive_theme",
+    "responsive_green",
+    "sankofa",
+    "simpleclean",
+    "simpler",
+    "sirbones",
+    "talata",
+    "tarski",
+    "themage",
+    "touch",
+    "zebilla"
+  ],
+  "hard": [
+    {
+      "theme": "addari",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "arti",
+      "reasons": [
+        "PHP 8.3 warnings in watchdog (missing parent theme arctica; null property errors in drupal_alter)"
+      ]
+    },
+    {
+      "theme": "bartik_fb",
+      "reasons": [
+        "bartik sub-theme — bartik already exists as Backdrop core theme"
+      ]
+    },
+    {
+      "theme": "adelante",
+      "reasons": [
+        "no two-sidebar layout (help=\"Help\", sidebar=\"Sidebar\", topleft=\"Header Left (Home)\", content=\"Content\", footer=\"Footer\")"
+      ]
+    },
+    {
+      "theme": "classic_blog",
+      "reasons": [
+        "no two-sidebar layout (sidebar_first=\"First Sidebar\", header=\"Header\", content_top=\"Content Top\", content=\"Content\", help=\"Help\", footer=\"Footer\")"
+      ]
+    },
+    {
+      "theme": "fdt_yellow",
+      "reasons": [
+        "no two-sidebar layout (header=\"Header\", primarynav=\"Primarynav\", secondarymenu=\"Secondarymenu\", search_box=\"Search_box\", right=\"Right sidebar\", content=\"Content\", footer=\"Footer\", footer_message=\"Footer_message\", highlighted=\"Highlighted\", help=\"Help\")"
+      ]
+    },
+    {
+      "theme": "icandy",
+      "reasons": [
+        "no two-sidebar layout (sidebar_first=\"Sidebar\", content=\"Content\", search_box=\"Search box\", footer=\"Footer\")"
+      ]
+    },
+    {
+      "theme": "jq_theme",
+      "reasons": [
+        "no two-sidebar layout (primary_nav=\"Primary Nav\", sidebar_first=\"Sidebar\", footer=\"Footer\", content=\"Content\")"
+      ]
+    },
+    {
+      "theme": "lightword",
+      "reasons": [
+        "no two-sidebar layout (header=\"Header\", content=\"Content\", sidebar_second=\"Right sidebar\", footer=\"Footer\", search_box=\"Search Form\")"
+      ]
+    },
+    {
+      "theme": "nigraphic",
+      "reasons": [
+        "no two-sidebar layout (help=\"Help\", left=\"Left sidebar\", topleft=\"Header Left\", content=\"Content\", footer=\"Footer\")"
+      ]
+    },
+    {
+      "theme": "parish_theme",
+      "reasons": [
+        "PHP 8.3 warnings in watchdog (missing parent theme boron; null property errors in drupal_alter)"
+      ]
+    },
+    {
+      "theme": "redsalute",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "shakennotstirred",
+      "reasons": [
+        "no two-sidebar layout (header=\"Header\", precontent=\"Precontent\", content=\"Content\", sidebar_second=\"Right Sidebar\", footer1=\"Footer #1\", footer2=\"Footer #2\", footer3=\"Footer #3\", footer4=\"Footer #4\")"
+      ]
+    },
+    {
+      "theme": "superclean",
+      "reasons": [
+        "no two-sidebar layout (help=\"Help\", content_top=\"Content Top\", content=\"Content\", sidebar_first=\"Left Sidebar\", footer=\"Footer\")"
+      ]
+    },
+    {
+      "theme": "templist",
+      "reasons": [
+        "no two-sidebar layout (primary_nav=\"Primary Nav\", content=\"Content\", sidebar_first=\"Left sidebar\", footer=\"Footer\")",
+        "PHP 8.3 errors in watchdog"
+      ]
+    }
+  ]
+}

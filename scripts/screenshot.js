@@ -67,14 +67,14 @@ async function captureTheme(site, theme) {
   // and count actual data rows (lines starting with | that aren't the header/separator).
   let watchdog = { status: 'n/a', output: '' };
   if (site === 'backdrop') {
-    const raw = tryRun(`ddev bee log --count=50 --severity=error --type=php`, cfg.projectDir);
+    const raw = tryRun(`ddev bee log --count=50 --severity=warning --type=php`, cfg.projectDir);
     const stripped = raw.replace(/\x1b\[[0-9;]*m/g, '').trim();
     const dataLines = stripped.split('\n')
       .map(l => l.trim())
       .filter(l => l && l.startsWith('|') && !l.includes('| ID |') && !/^\|[-\s|]+\|$/.test(l));
     watchdog = { status: dataLines.length > 0 ? 'errors' : 'clean', output: dataLines.join('\n') };
   } else if (site === 'd7') {
-    const raw = tryRun(`ddev drush watchdog-show --severity=error --count=50`, cfg.projectDir);
+    const raw = tryRun(`ddev drush watchdog-show --severity=warning --count=50`, cfg.projectDir);
     const stripped = raw.replace(/\x1b\[[0-9;]*m/g, '').trim();
     // No entries: drush outputs nothing or "There are no..." type message
     if (!stripped || /no (log |watchdog )?messages/i.test(stripped) || /there are no/i.test(stripped)) {
