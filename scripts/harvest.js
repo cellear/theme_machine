@@ -45,8 +45,19 @@ function saveLog(logData) {
 }
 
 function themeExists(machineName) {
+  // Check exact match first
   const themePath = path.join(THEMES_DIR, machineName);
-  return fs.existsSync(themePath);
+  if (fs.existsSync(themePath)) return true;
+
+  // Check for any underscore/hyphen variant (drupal.org extracts with mixed naming)
+  try {
+    const dirs = fs.readdirSync(THEMES_DIR);
+    // Normalize both: replace underscores and hyphens with a common char for comparison
+    const normalized = machineName.toLowerCase().replace(/[-_]/g, '');
+    return dirs.some(d => d.toLowerCase().replace(/[-_]/g, '') === normalized);
+  } catch {
+    return false;
+  }
 }
 
 function fetchReleaseHistory(machineName) {

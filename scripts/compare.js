@@ -5,12 +5,37 @@ const fs = require('fs');
 const { captureTheme, config } = require('./screenshot');
 
 const THEMES = [
-  'academia', 'adaptic', 'alphorn', 'b2_drupal_plus', 'bartik', 'beta',
-  'biz', 'black_lagoon', 'bluebreeze', 'bluefreedom3', 'bootstrap', 'chamfer', 'changeme',
-  'chocotheme', 'clean_theme', 'colorfulness_theme', 'corolla', 'danland', 'elegant_blue', 'fdt_grey', 'fold',
-  'havasu', 'koi', 'lexi_responsive_theme', 'mfirst', 'modern_theme', 'plasma', 'professional_pro', 'professional_responsive_theme', 'responsive_green', 'sankofa',
-  'simpleclean', 'simpler', 'sirbones', 'smashing_dilectio', 'talata', 'tarski',
-  'themage', 'touch', 'zebilla',
+  'a_cloudy_day', 'abaca', 'abarre', 'aberdeen', 'abessive', 'ablock',
+  'abstract', 'academia', 'acquia_marina', 'acquia_prosper', 'acta', 'active_n_rebuild',
+  'ad_agency', 'ad_blueprint', 'ad_novus', 'ad_the_morning_after', 'adaptic', 'adaptivetheme',
+  'addari', 'adelante', 'admire_grunge', 'airyblue', 'alina', 'alphorn',
+  'andreas', 'andreas02', 'andreas1024px', 'arthemia', 'arti', 'async',
+  'at_panels_everywhere', 'aurora', 'austin', 'b2_drupal_plus', 'bartik', 'bartik_d7',
+  'bartik_fb', 'basic', 'beach', 'beginning', 'beta', 'biz',
+  'black_lagoon', 'blank', 'blogbuzz', 'blue_zinfandel', 'bluebreeze', 'bluecheese',
+  'bluefreedom3', 'bluelake', 'bluemarine', 'bluemarine_ets', 'blueprint', 'bookstore',
+  'bootstrap', 'busy', 'camsel', 'chameleon', 'chamfer', 'changeme',
+  'charity', 'cherryblossom', 'chocotheme', 'classic_blog', 'clean', 'clean_theme',
+  'colorfulness_theme', 'colourise', 'conch', 'contented7', 'corolla', 'cti_flex',
+  'daleri_structure', 'danland', 'darkblue', 'decayed', 'deco', 'dessert',
+  'diary', 'dingus', 'dropshadow', 'earthish', 'easybreeze', 'ebizon_exotic_red',
+  'ebizon_redfire', 'eldir', 'elegant_blue', 'elements_theme', 'energetic', 'eve_igb',
+  'fdt_grey', 'fdt_yellow', 'fold', 'forest_floor', 'fourseasons', 'framework',
+  'fueldeluxe', 'fusion', 'gardening', 'garland_d7', 'gateway', 'genesis',
+  'glossyblue', 'grassland', 'green', 'havasu', 'hexagon', 'html5',
+  'icandy', 'inkribbon', 'interactive_media', 'internet_services', 'ishalist', 'jp_mobile',
+  'jq4dat', 'jq_theme', 'koi', 'layoutstudio', 'lexi_responsive_theme', 'lightword',
+  'litejazz', 'marinelli', 'mfirst', 'mobi', 'mobile', 'modern_theme',
+  'moleskine', 'mothership', 'mulpo', 'multiflex3', 'newsflash', 'newswire',
+  'nifty50', 'nigraphic', 'ninesixty', 'ninesixtyrobots', 'nitobe', 'noprob',
+  'ocadia', 'omega', 'orange', 'painted', 'panels_960gs', 'parish_theme',
+  'pixture_reloaded', 'plasma', 'pockett', 'polpo', 'professional_pro', 'professional_responsive_theme',
+  'pushbutton', 'redsalute', 'responsive_green', 'rootcandy', 'sankofa', 'scaccarium',
+  'scratch', 'shakennotstirred', 'shallowgrunge', 'simpleclean', 'simpler', 'sirbones',
+  'sky', 'smashing_dilectio', 'spring_bloom', 'stark', 'starkish', 'summertime',
+  'superclean', 'talata', 'tapestry', 'tarski', 'templist', 'themage',
+  'tma', 'touch', 'travel', 'waffles', 'web110', 'wilderness',
+  'yui_grid', 'zebilla', 'zen', 'zeropoint'
 ];
 
 function tryRun(cmd, cwd) {
