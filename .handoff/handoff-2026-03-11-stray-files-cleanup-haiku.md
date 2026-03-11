@@ -31,6 +31,18 @@ code but can't be tracked because `drupal-7/` is gitignored. Lists three
 solution approaches (move to tracked dir, embed in module, template) and
 notes that a decision is needed before Sprint 3.
 
+### Staged DOC files for later review
+
+Added 5 untracked DOC files:
+- `DOC/agent-delivery-conventions.md`
+- `DOC/handoff-epics-protocol.md`
+- `DOC/multi-model-planning.md`
+- `DOC/sprint-2-reset-plan.md`
+- `DOC/theme-catalog-schema.md`
+
+These are design/planning docs from prior work. To be reviewed and
+integrated later.
+
 ---
 
 ## Current State
