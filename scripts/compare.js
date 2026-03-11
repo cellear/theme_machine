@@ -154,15 +154,21 @@ ${rows.join('\n')}
 async function main() {
   fs.mkdirSync('reports', { recursive: true });
 
+  // --limit N  runs only the first N themes (handy for quick iteration)
+  const limitArg = process.argv.indexOf('--limit');
+  const themes = limitArg !== -1
+    ? THEMES.slice(0, parseInt(process.argv[limitArg + 1], 10))
+    : THEMES;
+
   const origD7 = getDefaultTheme('d7');
   const origBackdrop = getDefaultTheme('backdrop');
   console.log(`Saved defaults — D7: ${origD7}, Backdrop: ${origBackdrop}`);
 
   const results = [];
   try {
-    for (let i = 0; i < THEMES.length; i++) {
-      const theme = THEMES[i];
-      console.log(`\n[${i + 1}/${THEMES.length}] Processing: ${theme}...`);
+    for (let i = 0; i < themes.length; i++) {
+      const theme = themes[i];
+      console.log(`\n[${i + 1}/${themes.length}] Processing: ${theme}...`);
       const row = { theme, d7: {}, backdrop: {} };
 
       for (const site of ['d7', 'backdrop']) {
