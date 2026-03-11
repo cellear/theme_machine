@@ -153,8 +153,10 @@ ${rows.join('\n')}
 async function main() {
   fs.mkdirSync('reports', { recursive: true });
 
-  // --triage   use only the "ok" list from TOOLING/theme-triage.json
-  // --limit N  additionally cap to first N themes
+  // --triage      use only the "ok" list from TOOLING/theme-triage.json
+  // --limit N     run N themes (default: 10; overrides default)
+  // --offset N    start at position N in the theme list (default: 0)
+  // --all         run every theme (ignores --limit)
   let themes = [...THEMES];
   if (process.argv.includes('--triage')) {
     const triagePath = 'TOOLING/theme-triage.json';
@@ -166,8 +168,19 @@ async function main() {
       console.warn('--triage: TOOLING/theme-triage.json not found, run scripts/triage.js first.');
     }
   }
-  const limitArg = process.argv.indexOf('--limit');
-  if (limitArg !== -1) themes = themes.slice(0, parseInt(process.argv[limitArg + 1], 10));
+  const offsetArg = process.argv.indexOf('--offset');
+  const offset = offsetArg !== -1 ? parseInt(process.argv[offsetArg + 1], 10) : 0;
+  if (offset) themes = themes.slice(offset);
+
+  if (!process.argv.includes('--all')) {
+    const limitArg = process.argv.indexOf('--limit');
+    const limit = limitArg !== -1 ? parseInt(process.argv[limitArg + 1], 10) : 10;
+    themes = themes.slice(0, limit);
+  }
+
+  if (offset || themes.length < THEMES.length) {
+    console.log(`Running ${themes.length} themes (offset: ${offset}, total in list: ${THEMES.length})`);
+  }
 
   const origD7 = getDefaultTheme('d7');
   const origBackdrop = getDefaultTheme('backdrop');
