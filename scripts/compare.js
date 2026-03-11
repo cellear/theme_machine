@@ -178,11 +178,17 @@ ${rows.join('\n')}
 async function main() {
   fs.mkdirSync('reports', { recursive: true });
 
-  // --triage      use only the "ok" list from TOOLING/theme-triage.json
-  // --limit N     run N themes (default: 10; overrides default)
-  // --offset N    start at position N in the theme list (default: 0)
-  // --all         run every theme (ignores --limit)
+  // --triage         use only the "ok" list from TOOLING/theme-triage.json
+  // --limit N        run N themes (default: 10; overrides default)
+  // --offset N       start at position N in the theme list (default: 0)
+  // --all            run every theme (ignores --limit)
+  // --skip-existing  skip themes that already have a backdrop screenshot
   let themes = [...THEMES];
+  if (process.argv.includes('--skip-existing')) {
+    const before = themes.length;
+    themes = themes.filter(t => !fs.existsSync(`screenshots/backdrop/${t}/meta.json`));
+    console.log(`--skip-existing: ${themes.length} new / ${before - themes.length} already captured`);
+  }
   if (process.argv.includes('--triage')) {
     const triagePath = 'TOOLING/theme-triage.json';
     if (fs.existsSync(triagePath)) {
