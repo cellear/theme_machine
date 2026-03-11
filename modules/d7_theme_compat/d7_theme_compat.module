@@ -533,11 +533,14 @@ function d7_theme_compat_preprocess_page(&$variables) {
 
   // Layout variable (sidebar detection).
   // D7 reference: theme.inc:2691-2697
+  // Uses detect function to handle themes with non-standard sidebar names
+  // (e.g. sidebar_left/sidebar_right instead of sidebar_first/sidebar_second).
+  $sidebars = _d7_theme_compat_detect_sidebar_regions();
   $variables['layout'] = 'none';
-  if (!empty($variables['page']['sidebar_first'])) {
+  if ($sidebars['left'] && !empty($variables['page'][$sidebars['left']])) {
     $variables['layout'] = 'first';
   }
-  if (!empty($variables['page']['sidebar_second'])) {
+  if ($sidebars['right'] && !empty($variables['page'][$sidebars['right']])) {
     $variables['layout'] = ($variables['layout'] == 'first') ? 'both' : 'second';
   }
 
@@ -780,6 +783,58 @@ function _d7_theme_compat_is_d7_theme() {
 }
 
 /**
+ * Detect the left and right sidebar region keys for the active D7 theme.
+ *
+ * D7 themes use varying region names for sidebars. Most use the standard
+ * sidebar_first / sidebar_second, but some use sidebar_left / sidebar_right
+ * or other variants. This function identifies the actual region keys so
+ * the compat layer can map Layout blocks and body classes correctly.
+ *
+ * @return array
+ *   Associative array with 'left' and 'right' keys. Each value is the
+ *   theme's region key for that sidebar, or NULL if no matching region.
+ */
+function _d7_theme_compat_detect_sidebar_regions() {
+  $sidebars = &backdrop_static(__FUNCTION__);
+  if (isset($sidebars)) {
+    return $sidebars;
+  }
+
+  global $theme;
+  $themes = list_themes();
+  if (!empty($themes[$theme]->info['regions'])) {
+    $region_keys = array_keys($themes[$theme]->info['regions']);
+  }
+  else {
+    // No regions declared — theme uses D7 defaults.
+    $region_keys = array(
+      'sidebar_first', 'sidebar_second', 'content', 'header',
+      'footer', 'highlighted', 'help', 'page_top', 'page_bottom',
+    );
+  }
+
+  // Ordered by convention priority — first match wins.
+  $left_candidates = array('sidebar_first', 'sidebar_left', 'left', 'left_sidebar');
+  $right_candidates = array('sidebar_second', 'sidebar_right', 'right', 'right_sidebar');
+
+  $sidebars = array('left' => NULL, 'right' => NULL);
+  foreach ($left_candidates as $key) {
+    if (in_array($key, $region_keys)) {
+      $sidebars['left'] = $key;
+      break;
+    }
+  }
+  foreach ($right_candidates as $key) {
+    if (in_array($key, $region_keys)) {
+      $sidebars['right'] = $key;
+      break;
+    }
+  }
+
+  return $sidebars;
+}
+
+/**
  * Get the filesystem path of the active D7 theme, if any.
  *
  * Note: Backdrop uses $theme->filename (not $theme->uri like D7).
@@ -834,10 +889,25 @@ function _d7_theme_compat_render_layout_blocks(&$variables) {
   // Get the D7 theme's declared regions so we know which regions to populate.
   $d7_regions = array_keys($variables['page']);
 
+  // Build a region remap for themes with non-standard sidebar names.
+  // The Layout stores blocks under sidebar_first / sidebar_second, but some
+  // D7 themes use sidebar_left / sidebar_right or other variants.
+  $region_remap = array();
+  $sidebars = _d7_theme_compat_detect_sidebar_regions();
+  if ($sidebars['left'] && $sidebars['left'] !== 'sidebar_first' && !in_array('sidebar_first', $d7_regions)) {
+    $region_remap['sidebar_first'] = $sidebars['left'];
+  }
+  if ($sidebars['right'] && $sidebars['right'] !== 'sidebar_second' && !in_array('sidebar_second', $d7_regions)) {
+    $region_remap['sidebar_second'] = $sidebars['right'];
+  }
+
   // Iterate Layout regions and render their blocks.
   foreach ($layout->positions as $layout_region => $block_uuids) {
+    // Remap Layout region name to theme's actual region name if needed.
+    $target_region = isset($region_remap[$layout_region]) ? $region_remap[$layout_region] : $layout_region;
+
     // Only populate regions that exist in the D7 theme's page array.
-    if (!in_array($layout_region, $d7_regions)) {
+    if (!in_array($target_region, $d7_regions)) {
       continue;
     }
 
@@ -904,11 +974,11 @@ function _d7_theme_compat_render_layout_blocks(&$variables) {
       $rendered_block .= '<div class="content">' . $content . '</div>';
       $rendered_block .= '</div>';
 
-      // Append to the region's render array.
-      if (empty($variables['page'][$layout_region]) || !is_array($variables['page'][$layout_region])) {
-        $variables['page'][$layout_region] = array();
+      // Append to the region's render array (using the remapped region name).
+      if (empty($variables['page'][$target_region]) || !is_array($variables['page'][$target_region])) {
+        $variables['page'][$target_region] = array();
       }
-      $variables['page'][$layout_region]['block_' . $uuid] = array(
+      $variables['page'][$target_region]['block_' . $uuid] = array(
         '#markup' => $rendered_block,
       );
     }
