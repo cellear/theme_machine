@@ -44,9 +44,10 @@ function restoreTheme(site, theme) {
   }
 }
 
+// Reports live in reports/, screenshots in screenshots/ — path goes up one level.
 function imgSrc(filePath) {
-  if (!fs.existsSync(filePath)) return 'data:image/png;base64,';
-  return 'data:image/png;base64,' + fs.readFileSync(filePath).toString('base64');
+  if (!fs.existsSync(filePath)) return null;
+  return '../' + filePath;
 }
 
 function badge(watchdog) {
@@ -90,7 +91,8 @@ function buildReport(results) {
       if (data.error) {
         return `${header}<div class="err">FAIL: ${data.error.slice(0, 200)}</div>`;
       }
-      const img = `<img src="${imgSrc(`screenshots/${site}/${theme}/node.png`)}" alt="node">`;
+      const src = imgSrc(`screenshots/${site}/${theme}/node.png`);
+      const img = src ? `<img src="${src}" alt="node">` : '<p style="color:#999;font-size:12px">No screenshot</p>';
       return `${header}${img}${watchdogSection(wdg)}`;
     };
 

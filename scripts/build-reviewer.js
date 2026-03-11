@@ -32,9 +32,11 @@ function discoverThemes() {
   return [...all].sort();
 }
 
-function imgSrc(filePath) {
-  if (!fs.existsSync(filePath)) return '';
-  return 'data:image/png;base64,' + fs.readFileSync(filePath).toString('base64');
+// Return a relative path from reports/ to the screenshot, or null if missing.
+// HTML files live in reports/, screenshots live in screenshots/ — one level up.
+function imgRelPath(site, theme) {
+  const full = path.join(SCREENSHOTS_DIR, site, theme, 'node.png');
+  return fs.existsSync(full) ? `../screenshots/${site}/${theme}/node.png` : null;
 }
 
 // Read watchdog metadata saved alongside screenshots (if compare.js wrote it)
@@ -48,21 +50,19 @@ function readMeta(site, theme) {
 
 function buildThemeData(themes) {
   return themes.map(theme => {
-    const d7Png  = path.join(SCREENSHOTS_DIR, 'd7',      theme, 'node.png');
-    const bdPng  = path.join(SCREENSHOTS_DIR, 'backdrop', theme, 'node.png');
-    const d7Meta  = readMeta('d7', theme);
-    const bdMeta  = readMeta('backdrop', theme);
-
+    const d7Meta = readMeta('d7', theme);
+    const bdMeta = readMeta('backdrop', theme);
     return {
       theme,
-      d7:  { src: imgSrc(d7Png),  watchdog: d7Meta  ? d7Meta.watchdog  : null },
-      bd:  { src: imgSrc(bdPng),  watchdog: bdMeta  ? bdMeta.watchdog  : null },
+      d7: { img: imgRelPath('d7',       theme), watchdog: d7Meta ? d7Meta.watchdog : null },
+      bd: { img: imgRelPath('backdrop',  theme), watchdog: bdMeta ? bdMeta.watchdog : null },
     };
   });
 }
 
 function buildHTML(themeData) {
-  // Inline theme data as JSON (images are base64 embedded)
+  // Theme data as JSON — contains relative image paths, not base64 blobs.
+  // Images are loaded directly from screenshots/ by the browser.
   const dataJson = JSON.stringify(themeData);
 
   return `<!DOCTYPE html>
@@ -275,8 +275,8 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: #1a1a
         ? '<img src="' + src + '" alt="screenshot">'
         : '<span class="no-screenshot">No screenshot</span>';
     }
-    setImg(imgD7, t.d7.src);
-    setImg(imgBd, t.bd.src);
+    setImg(imgD7, t.d7.img);
+    setImg(imgBd, t.bd.img);
 
     // Watchdog badges
     wdD7.innerHTML = wdBadge(t.d7.watchdog);
@@ -422,8 +422,8 @@ function main() {
 
   console.log(`Found ${themes.length} theme(s) with screenshots.`);
   const themeData = buildThemeData(themes);
-  const embedded  = themeData.filter(t => t.d7.src || t.bd.src).length;
-  console.log(`Embedded screenshots for ${embedded} theme(s).`);
+  const linked = themeData.filter(t => t.d7.img || t.bd.img).length;
+  console.log(`Linked screenshots for ${linked} theme(s). Images loaded from screenshots/ at runtime.`);
 
   fs.mkdirSync(REPORTS_DIR, { recursive: true });
   const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
