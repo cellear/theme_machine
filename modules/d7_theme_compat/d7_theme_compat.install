@@ -1,0 +1,55 @@
+<?php
+/**
+ * @file
+ * Install, update, and uninstall functions for D7 Theme Compatibility.
+ */
+
+/**
+ * Implements hook_install().
+ *
+ * Sets module weight high so d7_theme_compat hooks run after most other modules
+ * (important for hook_system_theme_data_alter and hook_theme_registry_alter).
+ */
+function d7_theme_compat_install() {
+  db_update('system')
+    ->fields(array('weight' => 50))
+    ->condition('name', 'd7_theme_compat')
+    ->execute();
+
+  // Initialize default config on fresh install.
+  $config = config('d7_theme_compat.settings');
+  if ($config->isNew()) {
+    $config->setData(array(
+      '_config_name' => 'd7_theme_compat.settings',
+      'inject_d7_core_css' => TRUE,
+      'region_labels' => FALSE,
+      'auto_layout_sync' => TRUE,
+      'per_theme' => array(),
+    ));
+    $config->save();
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function d7_theme_compat_uninstall() {
+  config('d7_theme_compat.settings')->delete();
+}
+
+/**
+ * Add settings config for D7 Theme Compatibility.
+ */
+function d7_theme_compat_update_1000() {
+  $config = config('d7_theme_compat.settings');
+  if ($config->isNew()) {
+    $config->setData(array(
+      '_config_name' => 'd7_theme_compat.settings',
+      'inject_d7_core_css' => TRUE,
+      'region_labels' => FALSE,
+      'auto_layout_sync' => TRUE,
+      'per_theme' => array(),
+    ));
+    $config->save();
+  }
+}

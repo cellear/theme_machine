@@ -51,6 +51,21 @@ function _d7_theme_compat_get_template_map() {
 // ============================================================================
 
 /**
+ * Implements hook_menu().
+ */
+function d7_theme_compat_menu() {
+  $items['admin/config/user-interface/d7-theme-compat'] = array(
+    'title' => 'D7 Theme Compatibility',
+    'description' => 'Configure Drupal 7 theme compatibility options.',
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('d7_theme_compat_settings_form'),
+    'access arguments' => array('administer themes'),
+    'file' => 'd7_theme_compat.admin.inc',
+  );
+  return $items;
+}
+
+/**
  * Implements hook_layout_template_info().
  *
  * Registers a layout template with D7's default region names so that blocks
@@ -145,13 +160,38 @@ function d7_theme_compat_system_info_alter(&$info, $file, $type) {
 function d7_theme_compat_init() {
   $default_theme = config_get('system.core', 'theme_default');
   $themes = list_themes();
+  // Skip entirely on admin pages when an admin theme is configured.
+  // hook_init() uses theme_default (the front-end D7 theme), but admin pages
+  // render with the admin theme (e.g. Seven), so D7 CSS must not be injected there.
+  $admin_theme = config_get('system.core', 'admin_theme');
+  if ($admin_theme && $admin_theme !== $default_theme && path_is_admin(current_path())) {
+    return;
+  }
+
   if (isset($themes[$default_theme]->info['core']) && $themes[$default_theme]->info['core'] == '7.x') {
     layout_suppress(TRUE);
 
     // Sync the Default and Front Page layout instances to use this theme's
     // layout template. Handles the case where the theme was set via drush/bee
     // (which doesn't trigger hook_config_update).
-    _d7_theme_compat_sync_layout($default_theme);
+    if (config_get('d7_theme_compat.settings', 'auto_layout_sync')) {
+      _d7_theme_compat_sync_layout($default_theme);
+    }
+
+    // Load bundled D7 core CSS so themes that depend on system.base.css,
+    // node.css, etc. render correctly. Defaults to enabled (NULL = enabled).
+    // Per-theme override is checked manually here because _d7_theme_compat_get_setting()
+    // requires $theme to be initialized, which hasn't happened yet in hook_init().
+    $per_theme = config_get('d7_theme_compat.settings', 'per_theme') ?: array();
+    if (isset($per_theme[$default_theme]['inject_d7_core_css'])) {
+      $inject_css = $per_theme[$default_theme]['inject_d7_core_css'];
+    }
+    else {
+      $inject_css = config_get('d7_theme_compat.settings', 'inject_d7_core_css') !== FALSE;
+    }
+    if ($inject_css) {
+      _d7_theme_compat_add_d7_core_css();
+    }
 
     // Prevent D7 themes' first-install file operations from crashing.
     // Common pattern: theme checks variable_get('theme_{name}_first_install', TRUE)
@@ -183,7 +223,9 @@ function d7_theme_compat_config_update(Config $config) {
   if (!isset($themes[$new_theme]->info['core']) || $themes[$new_theme]->info['core'] !== '7.x') {
     return;
   }
-  _d7_theme_compat_sync_layout($new_theme);
+  if (config_get('d7_theme_compat.settings', 'auto_layout_sync')) {
+    _d7_theme_compat_sync_layout($new_theme);
+  }
 }
 
 /**
@@ -575,6 +617,9 @@ function d7_theme_compat_preprocess_page(&$variables) {
   if (!isset($variables['messages'])) {
     $variables['messages'] = $variables['show_messages'] ? theme('status_messages') : '';
   }
+
+  // Region labels debug overlay (no-op unless enabled in settings).
+  _d7_theme_compat_inject_region_labels($variables);
 }
 
 /**
@@ -718,6 +763,131 @@ if (!function_exists('_color_page_alter')) {
 // ============================================================================
 // Helper functions
 // ============================================================================
+
+/**
+ * Load the bundled D7 core CSS files into the current page.
+ *
+ * These stylesheets ship with Drupal 7 core and many D7 themes assume they
+ * are present. Backdrop reorganised or removed some of them. We bundle
+ * copies in the module so they can be conditionally injected.
+ *
+ * Uses CSS_SYSTEM group and weight -100 so they load before theme CSS,
+ * matching D7's loading order.
+ *
+ * Called from d7_theme_compat_init(), which only fires when a D7 theme is
+ * the active default theme, so no additional guard is needed here.
+ */
+function _d7_theme_compat_add_d7_core_css() {
+  $base = backdrop_get_path('module', 'd7_theme_compat') . '/css/d7-core/';
+  $files = array(
+    'system.base.css',
+    'system.menus.css',
+    'system.messages.css',
+    'system.theme.css',
+    'node.css',
+    'comment.css',
+    'field.css',
+    'user.css',
+  );
+  foreach ($files as $file) {
+    backdrop_add_css($base . $file, array(
+      'group' => CSS_SYSTEM,
+      'weight' => -100,
+      'every_page' => TRUE,
+    ));
+  }
+}
+
+/**
+ * Inject the region labels debug overlay into page region variables.
+ *
+ * Wraps each populated D7 page region with a dashed outline and a small
+ * badge showing the region machine name. Reads the setting via
+ * _d7_theme_compat_get_setting() so per-theme overrides are respected.
+ *
+ * Called at the end of d7_theme_compat_preprocess_page() after all regions
+ * are fully populated.
+ *
+ * @param array $variables
+ *   Page preprocess variables, passed by reference.
+ */
+function _d7_theme_compat_inject_region_labels(&$variables) {
+  if (!_d7_theme_compat_get_setting('region_labels')) {
+    return;
+  }
+
+  backdrop_add_css(
+    backdrop_get_path('module', 'd7_theme_compat') . '/css/region-labels.css',
+    array('group' => CSS_SYSTEM, 'weight' => 100)
+  );
+
+  foreach ($variables['page'] as $region_key => &$region_content) {
+    // Skip Backdrop's internal page-level keys (e.g. #attached, #show_messages).
+    if (substr($region_key, 0, 1) === '#') {
+      continue;
+    }
+    // Only label populated regions to avoid cluttering empty ones.
+    if (!is_array($region_content) || empty($region_content)) {
+      continue;
+    }
+    // Add the badge element at the top of this region's render array.
+    $region_content['region_label_' . $region_key] = array(
+      '#markup' => '<div class="region-labels-badge">' . check_plain($region_key) . '</div>',
+      '#weight' => -9999,
+    );
+    // Wrap the region output in the dashed-outline div.
+    if (!isset($region_content['#prefix'])) {
+      $region_content['#prefix'] = '';
+    }
+    if (!isset($region_content['#suffix'])) {
+      $region_content['#suffix'] = '';
+    }
+    $region_content['#prefix'] = '<div class="region-labels-wrapper">' . $region_content['#prefix'];
+    $region_content['#suffix'] = $region_content['#suffix'] . '</div>';
+  }
+}
+
+/**
+ * Get a d7_theme_compat setting, with per-theme override support.
+ *
+ * Checks per_theme.{active_theme}.{key} first, then falls back to the global
+ * setting. Returns a hardcoded default if the config file doesn't exist yet
+ * (safety net for upgrades before update_1000 runs).
+ *
+ * Note: Do NOT call this from hook_init() — global $theme is not yet set.
+ * Use config_get('d7_theme_compat.settings', $key) directly in hook_init().
+ *
+ * @param string $key
+ *   The setting key: 'inject_d7_core_css', 'region_labels', 'auto_layout_sync'.
+ *
+ * @return mixed
+ *   The setting value.
+ */
+function _d7_theme_compat_get_setting($key) {
+  $defaults = array(
+    'inject_d7_core_css' => TRUE,
+    'region_labels' => FALSE,
+    'auto_layout_sync' => TRUE,
+  );
+
+  $config = config('d7_theme_compat.settings');
+  if ($config->isNew()) {
+    return isset($defaults[$key]) ? $defaults[$key] : NULL;
+  }
+
+  // Check per-theme override.
+  global $theme;
+  if ($theme) {
+    $per_theme = $config->get('per_theme');
+    if (isset($per_theme[$theme][$key])) {
+      return $per_theme[$theme][$key];
+    }
+  }
+
+  // Fall back to global setting.
+  $value = $config->get($key);
+  return isset($value) ? $value : (isset($defaults[$key]) ? $defaults[$key] : NULL);
+}
 
 /**
  * Sync the Default and Front Page layout instances to the active D7 theme.
