@@ -53,7 +53,7 @@ async function captureTheme(site, theme) {
 
   const browser = await chromium.launch();
   const page = await browser.newPage();
-  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.setViewportSize({ width: 1280, height: 1600 });
 
   // Content node
   await page.goto(cfg.url + cfg.contentPath, { waitUntil: 'networkidle', timeout: 15000 });
