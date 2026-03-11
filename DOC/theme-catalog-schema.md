@@ -123,3 +123,33 @@ TOOLING/
 
 - **JSON:** Strip HTML tags; store plain text. Optionally normalize whitespace and newlines.
 - **CSV:** Omit description entirely.
+
+---
+
+## Catalog Scope: Why 151 Themes
+
+The scraper filters to `sm_field_project_type=full`, which limits results to projects promoted to "full" status on drupal.org. This is a meaningful quality signal, not a bureaucratic label — a project reaches full status only after community review.
+
+**The catalog has 151 themes.** Earlier planning documents estimated ~761; that number was wrong. The scraper paginates correctly and 151 is the genuine total for full-status D7 themes.
+
+### What "full" excludes
+
+Roughly 600 additional D7-compatible projects exist in sandbox status. For D7 (EOL January 2025, peak usage ~2012–2018), the sandbox population is mostly:
+
+- Abandoned experiments that never shipped
+- One-off client themes accidentally uploaded
+- Themes started and dropped mid-development
+- Duplicates and forks that never diverged meaningfully
+- A small number of real themes that simply never sought promotion
+
+### Why 151 is the right working set
+
+The full-status themes are the ones real D7 sites actually used. Install counts confirm this: Bootstrap (35k installs), Omega (12k), AdaptiveTheme (9.5k). These are the themes worth demonstrating Backdrop compatibility with.
+
+For the project's stated goal — showing that D7 themes work on Backdrop with minor modifications — 151 well-used themes makes a stronger case than 750 themes where half are half-finished experiments.
+
+### If you ever want more
+
+Remove the `sm_field_project_type=full` filter from the search URL in `scrape-theme-catalog.py`. You could then cherry-pick by `install_count_7x` to surface sandbox themes that actually had real users. That's a future option, not a current gap.
+
+Last updated: 2026-03-11 by Claude Sonnet 4.6

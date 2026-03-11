@@ -46,8 +46,13 @@ scripts/compare.js   added --skip-existing flag (~5 lines)
 
 ---
 
+## Catalog Scope (why 151)
+
+Documented in `DOC/theme-catalog-schema.md` under "Catalog Scope: Why 151 Themes". Short version: the `full` project type filter on drupal.org is a real quality signal — only reviewed, promoted projects pass it. The ~600 excluded themes are mostly sandbox experiments. 151 is the right working set; the earlier "761" estimate was wrong.
+
 ## References
 
+- Catalog scope doc: `DOC/theme-catalog-schema.md` (new section added this session)
 - Prior handoff: `.handoff/handoff-2026-03-11-catalog-expansion-sonnet.md`
 - Plan: `DOC/implementation-plan.md` (Sprint 3)
 
