@@ -156,11 +156,21 @@ ${rows.join('\n')}
 async function main() {
   fs.mkdirSync('reports', { recursive: true });
 
-  // --limit N  runs only the first N themes (handy for quick iteration)
+  // --triage   use only the "ok" list from TOOLING/theme-triage.json
+  // --limit N  additionally cap to first N themes
+  let themes = [...THEMES];
+  if (process.argv.includes('--triage')) {
+    const triagePath = 'TOOLING/theme-triage.json';
+    if (fs.existsSync(triagePath)) {
+      const { ok } = JSON.parse(fs.readFileSync(triagePath, 'utf8'));
+      themes = themes.filter(t => ok.includes(t));
+      console.log(`Triage filter: ${themes.length} / ${THEMES.length} themes pass.`);
+    } else {
+      console.warn('--triage: TOOLING/theme-triage.json not found, run scripts/triage.js first.');
+    }
+  }
   const limitArg = process.argv.indexOf('--limit');
-  const themes = limitArg !== -1
-    ? THEMES.slice(0, parseInt(process.argv[limitArg + 1], 10))
-    : THEMES;
+  if (limitArg !== -1) themes = themes.slice(0, parseInt(process.argv[limitArg + 1], 10));
 
   const origD7 = getDefaultTheme('d7');
   const origBackdrop = getDefaultTheme('backdrop');
@@ -177,6 +187,11 @@ async function main() {
         try {
           const result = await captureTheme(site, theme);
           row[site] = result;
+          // Persist watchdog data so triage.js and build-reviewer.js can read it
+          fs.writeFileSync(
+            `screenshots/${site}/${theme}/meta.json`,
+            JSON.stringify({ watchdog: result.watchdog, capturedAt: new Date().toISOString() })
+          );
           console.log(`  ${site}: ok — watchdog: ${result.watchdog.status}`);
         } catch (e) {
           row[site] = { error: e.message };
