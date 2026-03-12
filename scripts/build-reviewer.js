@@ -413,7 +413,17 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: #1a1a
 }
 
 function main() {
-  const themes = discoverThemes();
+  // --only <file.json>  restrict to a specific list of theme names (e.g. a triage subset)
+  let themes = discoverThemes();
+  const onlyArg = process.argv.indexOf('--only');
+  if (onlyArg !== -1) {
+    const onlyFile = process.argv[onlyArg + 1];
+    const onlyList = JSON.parse(fs.readFileSync(onlyFile, 'utf8'));
+    const before = themes.length;
+    themes = themes.filter(t => onlyList.includes(t));
+    console.log(`--only: ${themes.length} of ${before} themes selected from ${onlyFile}`);
+  }
+
   if (themes.length === 0) {
     console.error('No screenshots found in screenshots/d7/ or screenshots/backdrop/');
     console.error('Run node scripts/compare.js first to generate screenshots.');
