@@ -177,12 +177,27 @@ ${rows.join('\n')}
 async function main() {
   fs.mkdirSync('reports', { recursive: true });
 
+  // --theme=NAME     run a single theme by machine name
   // --triage         use only the "ok" list from TOOLING/theme-triage.json
   // --limit N        run N themes (default: 10; overrides default)
   // --offset N       start at position N in the theme list (default: 0)
   // --all            run every theme (ignores --limit)
   // --skip-existing  skip themes that already have a backdrop screenshot
   let themes = [...THEMES];
+
+  // Check for --theme=NAME first (takes priority as it's most specific)
+  const themeArg = process.argv.find(arg => arg.startsWith('--theme='));
+  if (themeArg) {
+    const themeName = themeArg.replace(/^--theme=/, '').replace(/^["']|["']$/g, '');
+    if (THEMES.includes(themeName)) {
+      themes = [themeName];
+      console.log(`--theme: running single theme: ${themeName}`);
+    } else {
+      console.error(`--theme: theme "${themeName}" not found in THEMES array`);
+      process.exit(1);
+    }
+  }
+
   if (process.argv.includes('--skip-existing')) {
     const before = themes.length;
     themes = themes.filter(t => !fs.existsSync(`screenshots/backdrop/${t}/meta.json`));
@@ -198,18 +213,21 @@ async function main() {
       console.warn('--triage: TOOLING/theme-triage.json not found, run scripts/triage.js first.');
     }
   }
-  const offsetArg = process.argv.indexOf('--offset');
-  const offset = offsetArg !== -1 ? parseInt(process.argv[offsetArg + 1], 10) : 0;
-  if (offset) themes = themes.slice(offset);
+  // Skip offset/limit if --theme was specified (single theme mode)
+  if (!themeArg) {
+    const offsetArg = process.argv.indexOf('--offset');
+    const offset = offsetArg !== -1 ? parseInt(process.argv[offsetArg + 1], 10) : 0;
+    if (offset) themes = themes.slice(offset);
 
-  if (!process.argv.includes('--all')) {
-    const limitArg = process.argv.indexOf('--limit');
-    const limit = limitArg !== -1 ? parseInt(process.argv[limitArg + 1], 10) : 10;
-    themes = themes.slice(0, limit);
-  }
+    if (!process.argv.includes('--all')) {
+      const limitArg = process.argv.indexOf('--limit');
+      const limit = limitArg !== -1 ? parseInt(process.argv[limitArg + 1], 10) : 10;
+      themes = themes.slice(0, limit);
+    }
 
-  if (offset || themes.length < THEMES.length) {
-    console.log(`Running ${themes.length} themes (offset: ${offset}, total in list: ${THEMES.length})`);
+    if (offset || themes.length < THEMES.length) {
+      console.log(`Running ${themes.length} themes (offset: ${offset}, total in list: ${THEMES.length})`);
+    }
   }
 
   const origD7 = getDefaultTheme('d7');
