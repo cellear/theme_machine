@@ -2,6 +2,7 @@ name = D7 Theme Compatibility
 description = Enables unmodified Drupal 7 themes to run on Backdrop CMS with template bridging, region mapping, and D7 core CSS injection.
 type = module
 backdrop = 1.x
+version = 1.0.0
 package = User Interface
 tags[] = Themes
 tags[] = Drupal 7
