@@ -1,25 +1,67 @@
 {
-  "generated": "2026-03-11T06:27:28.345Z",
+  "generated": "2026-03-12T06:57:25.590Z",
   "criteria": [
     "no PHP 8.3 watchdog errors",
     "theme declares both a left-ish and right-ish sidebar region (or no regions block)"
   ],
-  "total": 45,
+  "total": 184,
   "ok": [
+    "aberdeen",
+    "abstract",
     "academia",
+    "acquia_prosper",
+    "acta",
+    "active_n_rebuild",
+    "ad_agency",
     "adaptic",
+    "airyblue",
+    "andreas02",
+    "andreas1024px",
+    "arthemia",
+    "async",
+    "at_panels_everywhere",
+    "austin",
     "b2_drupal_plus",
+    "bartik",
+    "bartik_d7",
+    "bartik_fb",
+    "basic",
+    "beach",
+    "beginning",
     "biz",
     "black_lagoon",
+    "blank",
+    "blogbuzz",
     "bluebreeze",
+    "bluecheese",
     "bluefreedom3",
+    "bluemarine",
+    "bootstrap",
+    "busy",
+    "camsel",
+    "chameleon",
     "changeme",
+    "clean",
     "clean_theme",
     "colorfulness_theme",
+    "colourise",
+    "contented7",
+    "corolla",
+    "cti_flex",
+    "danland",
+    "deco",
+    "dessert",
+    "dingus",
+    "dropshadow",
+    "earthish",
+    "easybreeze",
+    "eldir",
     "elegant_blue",
+    "elements_theme",
+    "energetic",
     "fdt_grey",
     "fold",
-    "havasu",
+    "forest_floor",
     "lexi_responsive_theme",
     "mfirst",
     "modern_theme",
@@ -31,29 +73,77 @@
     "simpleclean",
     "simpler",
     "sirbones",
+    "stark",
     "talata",
     "tarski",
-    "themage",
     "touch",
     "zebilla"
   ],
   "hard": [
     {
-      "theme": "addari",
+      "theme": "a_cloudy_day",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "abaca",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "abarre",
+      "reasons": [
+        "no two-sidebar layout (sidebar_first_top=\"Left sidebar top\", sidebar_first=\"Left sidebar\", content=\"Content\", footer=\"Footer\", highlighted=\"Highlighted\", help=\"Help\", page_top=\"Page Top\", page_bottom=\"Page Bottom\")"
+      ]
+    },
+    {
+      "theme": "abessive",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "ablock",
+      "reasons": [
+        "no two-sidebar layout (highlighted=\"Highlighted\", help=\"Help\", page_top=\"Page top\", content_top=\"content top\", content=\"Content\", content_bottom=\"content bottom\", page_bottom=\"Page bottom\", footer=\"Footer\")"
+      ]
+    },
+    {
+      "theme": "acquia_marina",
       "reasons": [
         "PHP 8.3 errors in watchdog"
       ]
     },
     {
-      "theme": "arti",
+      "theme": "ad_blueprint",
       "reasons": [
-        "PHP 8.3 warnings in watchdog (missing parent theme arctica; null property errors in drupal_alter)"
+        "no .info file in drupal-7/sites/all/themes/"
       ]
     },
     {
-      "theme": "bartik_fb",
+      "theme": "ad_novus",
       "reasons": [
-        "bartik sub-theme — bartik already exists as Backdrop core theme"
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "ad_the_morning_after",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "adaptivetheme",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "addari",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
       ]
     },
     {
@@ -63,9 +153,153 @@
       ]
     },
     {
+      "theme": "admire_grunge",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "alina",
+      "reasons": [
+        "no two-sidebar layout (header=\"Header\", highlight=\"Highlight\", help=\"Help\", content=\"Content\", node_region=\"Node region\", sidebar_second=\"Second sidebar\", footer=\"Footer\", footer1=\"Footer1\", footer2=\"Footer2\", bottom=\"Page bottom\")"
+      ]
+    },
+    {
+      "theme": "alphorn",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "andreas",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "arti",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "aurora",
+      "reasons": [
+        "no two-sidebar layout (header=\"Header\", main_prefix=\"Main Region Prefix\", content=\"Main\", main_suffix=\"Main Region Suffix\", footer=\"Footer\")"
+      ]
+    },
+    {
+      "theme": "beta",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "blue_zinfandel",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "bluelake",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "bluemarine_ets",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "blueprint",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "bookstore",
+      "reasons": [
+        "no two-sidebar layout (header=\"Header\", page_top=\"Page top\", help=\"Help\", content=\"Content\", sidebar_first=\"Sidebar first\", page_bottom=\"Page bottom\", footer=\"Footer\")"
+      ]
+    },
+    {
+      "theme": "chamfer",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "charity",
+      "reasons": [
+        "no two-sidebar layout (header_left=\"Header Left\", help=\"Help\", highlighted=\"Highlighted\", sidebar=\"Sidebar\", content_top=\"Content Top\", content=\"Content\", content_bottom=\"Content Bottom\", footer=\"Footer\")"
+      ]
+    },
+    {
+      "theme": "cherryblossom",
+      "reasons": [
+        "no two-sidebar layout (sidebar=\"Sidebar\", content=\"Content\", footer=\"Footer\", info=\"Info\", page_top=\"Page top\", page_bottom=\"Page bottom\")"
+      ]
+    },
+    {
+      "theme": "chocotheme",
+      "reasons": [
+        "no two-sidebar layout (primary_nav=\"Primary Nav\", sidebar_first=\"Sidebar\", content=\"Content\")"
+      ]
+    },
+    {
       "theme": "classic_blog",
       "reasons": [
         "no two-sidebar layout (sidebar_first=\"First Sidebar\", header=\"Header\", content_top=\"Content Top\", content=\"Content\", help=\"Help\", footer=\"Footer\")"
+      ]
+    },
+    {
+      "theme": "conch",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "daleri_structure",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "darkblue",
+      "reasons": [
+        "no two-sidebar layout (header_blocks=\"Header\", content_top=\"Content Top\", content=\"Content\", help=\"Help\", sidebar_first=\"First sidebar\", footer=\"Footer\")"
+      ]
+    },
+    {
+      "theme": "decayed",
+      "reasons": [
+        "no two-sidebar layout (sidebar_first=\"Left Sidebar\", search=\"Search\", highlighted=\"Highlighted\", help=\"Help\", content_top=\"Top Content\", content=\"Content\", content_bottom=\"Bottom Content\", footer_1=\"Footer 1\", footer_2=\"Footer 2\", footer_3=\"Footer 3\", footer=\"Footer\")"
+      ]
+    },
+    {
+      "theme": "diary",
+      "reasons": [
+        "no two-sidebar layout (content=\"Content\", help=\"Help\", sidebar_first=\"Sidebar\", footer=\"Footer\", page_top=\"Page top\", page_bottom=\"Page bottom\")"
+      ]
+    },
+    {
+      "theme": "ebizon_exotic_red",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "ebizon_redfire",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
+      ]
+    },
+    {
+      "theme": "eve_igb",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/"
       ]
     },
     {
@@ -75,9 +309,133 @@
       ]
     },
     {
+      "theme": "fourseasons",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "framework",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "fueldeluxe",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "fusion",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "gardening",
+      "reasons": [
+        "no two-sidebar layout (header=\"Header\", navigation=\"Navigation\", highlighted=\"Highlighted\", help=\"Help\", content=\"Content\", sidebar=\"Sidebar\", footer=\"Footer\")",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "garland_d7",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "gateway",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "genesis",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "glossyblue",
+      "reasons": [
+        "no two-sidebar layout (sidebar_right=\"Right sidebar\", content=\"Content\", footer=\"Footer\")"
+      ]
+    },
+    {
+      "theme": "grassland",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "green",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "havasu",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "hexagon",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "html5",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
       "theme": "icandy",
       "reasons": [
         "no two-sidebar layout (sidebar_first=\"Sidebar\", content=\"Content\", search_box=\"Search box\", footer=\"Footer\")"
+      ]
+    },
+    {
+      "theme": "inkribbon",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "interactive_media",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "internet_services",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "ishalist",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "jp_mobile",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "jq4dat",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
       ]
     },
     {
@@ -87,9 +445,91 @@
       ]
     },
     {
+      "theme": "koi",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "layoutstudio",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
       "theme": "lightword",
       "reasons": [
         "no two-sidebar layout (header=\"Header\", content=\"Content\", sidebar_second=\"Right sidebar\", footer=\"Footer\", search_box=\"Search Form\")"
+      ]
+    },
+    {
+      "theme": "litejazz",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "marinelli",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "mobi",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "mobile",
+      "reasons": [
+        "no two-sidebar layout (page_top=\"Page top\", highlighted=\"Highlighted\", help=\"Help\", content=\"Content\", supplementary=\"Supplementary content\", navigation=\"Navigation\", footer=\"Footer\", page_bottom=\"Page bottom\")",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "moleskine",
+      "reasons": [
+        "no two-sidebar layout (sidebar_right=\"Right sidebar\", content=\"Content\", content_top=\"Content Top\")",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "mothership",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "mulpo",
+      "reasons": [
+        "no two-sidebar layout (sidebar_first=\"Left sidebar\", footer=\"Footer\", content_bottom=\"content bottom\", header=\"header\", closure_region=\"closure\", content=\"Content\", content_top=\"Content top\", help=\"Help\")",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "multiflex3",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "newsflash",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "newswire",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "nifty50",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
       ]
     },
     {
@@ -99,13 +539,114 @@
       ]
     },
     {
+      "theme": "ninesixty",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "ninesixtyrobots",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "nitobe",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "noprob",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "ocadia",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "omega",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "orange",
+      "reasons": [
+        "no .info file in drupal-7/sites/all/themes/",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "painted",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "panels_960gs",
+      "reasons": [
+        "no two-sidebar layout (page_top=\"Page Top\", page_bottom=\"Page Bottom\", content=\"Content\", help=\"Help\")",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
       "theme": "parish_theme",
       "reasons": [
-        "PHP 8.3 warnings in watchdog (missing parent theme boron; null property errors in drupal_alter)"
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "pixture_reloaded",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "pockett",
+      "reasons": [
+        "no two-sidebar layout (right=\"Right Sidebar\", content=\"Content\", footer=\"Footer\", header=\"Header\", green=\"Green\")",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "polpo",
+      "reasons": [
+        "no two-sidebar layout (page_top=\"Page top\", page_bottom=\"Page bottom\", help=\"Help\", content=\"Content\", sidebar_first=\"Sidebar\", footer=\"Footer\")",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "pushbutton",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
       ]
     },
     {
       "theme": "redsalute",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "rootcandy",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "scaccarium",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "scratch",
       "reasons": [
         "PHP 8.3 errors in watchdog"
       ]
@@ -117,15 +658,116 @@
       ]
     },
     {
+      "theme": "shallowgrunge",
+      "reasons": [
+        "no two-sidebar layout (help=\"Help\", header=\"Header\", search=\"Search\", content=\"Content\", sidebar_first=\"Sidebar first\", footer=\"Footer\")",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "sky",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "smashing_dilectio",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "spring_bloom",
+      "reasons": [
+        "no two-sidebar layout (header=\"Header\", page_top=\"Page top\", help=\"Help\", content=\"Content\", sidebar_first=\"Sidebar first\", page_bottom=\"Page bottom\", footer=\"Footer\")",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "starkish",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "summertime",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
       "theme": "superclean",
       "reasons": [
         "no two-sidebar layout (help=\"Help\", content_top=\"Content Top\", content=\"Content\", sidebar_first=\"Left Sidebar\", footer=\"Footer\")"
       ]
     },
     {
+      "theme": "tapestry",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
       "theme": "templist",
       "reasons": [
         "no two-sidebar layout (primary_nav=\"Primary Nav\", content=\"Content\", sidebar_first=\"Left sidebar\", footer=\"Footer\")",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "themage",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "tma",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "travel",
+      "reasons": [
+        "no two-sidebar layout (header=\"Header\", navigation=\"Navigation\", highlighted=\"Highlighted\", help=\"Help\", content=\"Content\", sidebar=\"Sidebar\", footer=\"Footer\")",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "waffles",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "web110",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "wilderness",
+      "reasons": [
+        "no two-sidebar layout (sidebar_first=\"Left sidebar\", content=\"Content\", navigation=\"Menu\", copyright=\"Copyright\")",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "yui_grid",
+      "reasons": [
+        "no two-sidebar layout (header=\"Header\", sidebar=\"Sidebar\", content=\"Content\", footer=\"Footer\")",
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "zen",
+      "reasons": [
+        "PHP 8.3 errors in watchdog"
+      ]
+    },
+    {
+      "theme": "zeropoint",
+      "reasons": [
         "PHP 8.3 errors in watchdog"
       ]
     }
