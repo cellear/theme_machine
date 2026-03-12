@@ -42,16 +42,32 @@ function tryRun(cmd, cwd) {
   try { return execSync(cmd, { encoding: 'utf8', cwd }).trim(); } catch (e) { return ''; }
 }
 
+// Safe fallbacks to restore to after a run — themes guaranteed to exist on each site.
+const SAFE_DEFAULTS = { d7: 'bartik', backdrop: 'mfirst' };
+
 function getDefaultTheme(site) {
   const cfg = config[site];
+  const safe = SAFE_DEFAULTS[site];
+
   if (site === 'd7') {
     const out = tryRun(`ddev drush vget theme_default`, cfg.projectDir);
     const m = out.match(/:\s*'?(\w+)'?/);
-    return m ? m[1] : 'academia';
+    const theme = m ? m[1] : safe;
+    // Validate: check the theme directory exists in the D7 install.
+    // If a previous run crashed mid-theme, D7 may be stuck on a harvested theme
+    // that isn't actually installed on the D7 side.
+    // Check both contrib (sites/all/themes) and core (themes/) locations.
+    const contribDir = path.join(config.d7.projectDir, 'sites', 'all', 'themes', theme);
+    const coreDir    = path.join(config.d7.projectDir, 'themes', theme);
+    if (!fs.existsSync(contribDir) && !fs.existsSync(coreDir)) {
+      console.warn(`  D7 default theme "${theme}" not found — using ${safe}`);
+      return safe;
+    }
+    return theme;
   } else {
     const out = tryRun(`ddev bee config-get system.core`, cfg.projectDir);
     const m = out.match(/theme_default'\s*=>\s*'([^']+)'/);
-    return m ? m[1] : 'academia';
+    return m ? m[1] : safe;
   }
 }
 
