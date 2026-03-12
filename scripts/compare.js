@@ -185,15 +185,30 @@ async function main() {
   // --skip-existing  skip themes that already have a backdrop screenshot
   let themes = [...THEMES];
 
-  // Check for --theme=NAME first (takes priority as it's most specific)
-  const themeArg = process.argv.find(arg => arg.startsWith('--theme='));
+  // Catch common typo: theme=NAME instead of --theme=NAME
+  const typo = process.argv.find(arg => /^theme=/.test(arg));
+  if (typo) {
+    console.error(`Error: did you mean --${typo} ?`);
+    process.exit(1);
+  }
+
+  // --theme=NAME  or  --theme NAME  (both forms accepted)
+  let themeName = null;
+  const themeEq = process.argv.find(arg => arg.startsWith('--theme='));
+  if (themeEq) {
+    themeName = themeEq.replace(/^--theme=/, '').replace(/^["']|["']$/g, '');
+  } else {
+    const themeIdx = process.argv.indexOf('--theme');
+    if (themeIdx !== -1) themeName = process.argv[themeIdx + 1];
+  }
+
+  const themeArg = themeName !== null;
   if (themeArg) {
-    const themeName = themeArg.replace(/^--theme=/, '').replace(/^["']|["']$/g, '');
     if (THEMES.includes(themeName)) {
       themes = [themeName];
       console.log(`--theme: running single theme: ${themeName}`);
     } else {
-      console.error(`--theme: theme "${themeName}" not found in THEMES array`);
+      console.error(`--theme: "${themeName}" not found in THEMES list`);
       process.exit(1);
     }
   }
