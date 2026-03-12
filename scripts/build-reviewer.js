@@ -14,7 +14,30 @@ const fs = require('fs');
 const path = require('path');
 
 const SCREENSHOTS_DIR = path.join(__dirname, '..', 'screenshots');
-const REPORTS_DIR = path.join(__dirname, '..', 'reports');
+const REPORTS_DIR     = path.join(__dirname, '..', 'reports');
+const LAST_RUN_PATH   = path.join(__dirname, '..', 'reports', 'last-run.json');
+
+if (process.argv.includes('--help') || process.argv.includes('-h')) {
+  console.log(`
+build-reviewer.js — generate an interactive side-by-side theme reviewer
+
+Usage:
+  node scripts/build-reviewer.js [options]
+
+Options:
+  --only <file.json>   Restrict to a specific list of themes. Accepts:
+                         - a bare JSON array: ["theme1", "theme2"]
+                         - a triage JSON with an "ok" key: { "ok": [...] }
+                         - a last-run manifest with a "themes" key: { "themes": [...] }
+  --all                Include all themes that have screenshots (ignores last-run.json)
+  --help, -h           Show this help
+
+Default behavior:
+  Uses reports/last-run.json (written by compare.js) to show only the themes
+  from the most recent run. Pass --all to show every theme ever captured.
+`);
+  process.exit(0);
+}
 
 // Discover themes that have at least one screenshot
 function discoverThemes() {
@@ -412,16 +435,36 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: #1a1a
 </html>`;
 }
 
+// Extract a flat theme array from whatever shape a JSON file uses:
+//   bare array, { ok: [...] }, { themes: [...] }
+function loadThemeList(filePath) {
+  const raw = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  if (Array.isArray(raw)) return raw;
+  if (Array.isArray(raw.ok)) return raw.ok;
+  if (Array.isArray(raw.themes)) return raw.themes;
+  throw new Error(`Cannot find a theme list in ${filePath} — expected an array or { ok, themes } key`);
+}
+
 function main() {
-  // --only <file.json>  restrict to a specific list of theme names (e.g. a triage subset)
   let themes = discoverThemes();
+  const useAll = process.argv.includes('--all');
   const onlyArg = process.argv.indexOf('--only');
+
   if (onlyArg !== -1) {
+    // Explicit --only file
     const onlyFile = process.argv[onlyArg + 1];
-    const onlyList = JSON.parse(fs.readFileSync(onlyFile, 'utf8'));
+    const onlyList = loadThemeList(onlyFile);
     const before = themes.length;
     themes = themes.filter(t => onlyList.includes(t));
     console.log(`--only: ${themes.length} of ${before} themes selected from ${onlyFile}`);
+  } else if (!useAll && fs.existsSync(LAST_RUN_PATH)) {
+    // Default: use last-run.json
+    const lastRun = loadThemeList(LAST_RUN_PATH);
+    const before = themes.length;
+    themes = themes.filter(t => lastRun.includes(t));
+    console.log(`Using last-run.json: ${themes.length} of ${before} themes. Pass --all to include everything.`);
+  } else if (useAll) {
+    console.log(`--all: showing all ${themes.length} themes with screenshots.`);
   }
 
   if (themes.length === 0) {

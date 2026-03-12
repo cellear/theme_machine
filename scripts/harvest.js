@@ -13,6 +13,27 @@ const DELAY_MS = 300;
 
 // Parse CLI flags
 const args = process.argv.slice(2);
+
+if (args.includes('--help') || args.includes('-h')) {
+  console.log(`
+harvest.js — download D7 themes from drupal.org into backdrop/themes/
+
+Reads TOOLING/theme-catalog/catalog.json and downloads themes not yet present.
+
+Usage:
+  node scripts/harvest.js [options]
+
+Options:
+  --batch N    Number of themes to download in this run (default: 50)
+  --help, -h   Show this help
+
+Output:
+  backdrop/themes/{theme}/     Extracted theme directory
+  TOOLING/harvest-log.json     Log of downloaded themes
+`);
+  process.exit(0);
+}
+
 let batchSize = 50;
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--batch' && args[i + 1]) {

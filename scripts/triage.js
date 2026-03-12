@@ -23,6 +23,30 @@
 const fs   = require('fs');
 const path = require('path');
 
+if (process.argv.includes('--help') || process.argv.includes('-h')) {
+  console.log(`
+triage.js — sort themes into "ok" and "hard" based on automated criteria
+
+Hard criteria (either disqualifies a theme):
+  1. PHP errors in watchdog (from screenshots/d7/{theme}/meta.json)
+  2. Theme doesn't declare both a left-ish and right-ish sidebar region
+     (themes with no regions block at all pass — they use D7 defaults)
+
+Usage:
+  node scripts/triage.js            Dry run — print table, don't write anything
+  node scripts/triage.js --apply    Write results to TOOLING/theme-triage.json
+
+After --apply:
+  node scripts/compare.js --triage  Run only the "ok" themes
+  node scripts/build-reviewer.js --only TOOLING/theme-triage.json
+
+Options:
+  --apply      Write TOOLING/theme-triage.json
+  --help, -h   Show this help
+`);
+  process.exit(0);
+}
+
 const ROOT          = path.resolve(__dirname, '..');
 const D7_THEMES_DIR = path.join(ROOT, 'drupal-7', 'sites', 'all', 'themes');
 const SCREENSHOTS   = path.join(ROOT, 'screenshots');
