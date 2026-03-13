@@ -16,11 +16,14 @@
   - Hit a crash on `bluemarine_ets` (directory in listing but not on disk — broken state)
   - Fix for that crash is still pending (see blockers)
 
-### PHP Version Change
+### PHP Version Change & Module Fix
 - Both sites switched from PHP 8.3 to **PHP 7.1**
-- `d7_theme_compat.info` had `php = 8.1` — lowered to `php = 7.1`
-- Scanned all module PHP files for 8.x syntax — none found; 8.1 requirement was set unnecessarily
-- Module appears to work correctly on 7.1
+- `d7_theme_compat` module was blocking itself with `php = 8.1` in its `.info` file — Backdrop was refusing to enable it
+- Scanned all PHP files in the module (`d7_theme_compat.module`, `.admin.inc`, `.install`) for PHP 8.x syntax — none found
+- The 8.1 requirement was set unnecessarily when the dev environment happened to be running 8.3
+- Changed `php = 8.1` → `php = 7.1` in `modules/d7_theme_compat/d7_theme_compat.info`
+- `lost_regions` module has no `php =` line — unaffected
+- Module confirmed working on 7.1
 
 ### Scripts Usability
 - `compare.js` — now writes `reports/last-run.json` manifest after every run
