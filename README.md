@@ -1,84 +1,68 @@
 # Theme Machine
 
-A Backdrop CMS project that makes Drupal 7 themes run on Backdrop — with a suite of utility modules built to support the workflow.
+**The product:** [`modules/d7_theme_compat/`](modules/d7_theme_compat/) — a Backdrop CMS module that lets unmodified Drupal 7 themes run on Backdrop CMS. Install just that module on any Backdrop site.
 
-## What it is
+Everything else in this repo is the development and testing environment used to build and validate it across 170+ D7 themes.
 
-**Theme Machine** is a local Backdrop CMS installation wired up to test D7 theme compatibility. The core of the project is `d7_theme_compat`, a module that bridges the gap between Drupal 7's theme layer and Backdrop's. Around it are four utility modules that make large-scale theme testing practical.
+## What d7_theme_compat does
 
-## Modules
-
-### `d7_theme_compat`
-
-The compatibility layer. Makes D7 themes installable and renderable on Backdrop by:
+Makes D7 themes installable and renderable on Backdrop by:
 
 - Injecting `backdrop = 1.x` into D7 `.info` files so Backdrop recognizes them
 - Suppressing Backdrop's Layout system and rendering pages D7-style via `theme('page', ...)`
 - Redirecting Backdrop's theme registry to use D7 core templates (shipped inside the module)
 - Flattening Backdrop's array-style `$classes` and `$attributes` variables to strings, as D7 templates expect
 
-### `theme_tester`
+## Utility modules
 
-A Bee CLI command (`bee theme-test`) that smoke-tests all enabled themes automatically. For each theme it clears the log, switches the default, makes an HTTP request, checks for errors, and restores the original theme. See `DOC/theme-tester.md`.
+These support the testing workflow and may be useful independently:
 
-### `watchdog_tools`
-
-Bee CLI commands for managing the watchdog log from the terminal: `bee watchdog-clear` and `bee watchdog-count`. See `DOC/watchdog-tools.md`.
-
-### `theme_menu_block`
-
-A block that lists all enabled themes as one-click switcher links. Handy for toggling between themes without going through admin pages. See `DOC/theme-menu-block.md`.
-
-### `lost_regions`
-
-Rescues blocks placed in Layout regions that the active D7 theme doesn't declare. Blocks that would otherwise vanish silently are rendered in a fallback area. See `DOC/lost-regions.md`.
+| Module | What it does |
+|---|---|
+| `modules/theme_tester/` | Bee CLI command (`bee theme-test`) — smoke-tests all enabled themes automatically |
+| `modules/watchdog_tools/` | Bee CLI commands for managing the watchdog log (`bee watchdog-clear`, `bee watchdog-count`) |
+| `modules/theme_menu_block/` | Block that lists all enabled themes as one-click switcher links |
+| `modules/lost_regions/` | Rescues blocks placed in regions that the active D7 theme doesn't declare |
+| `d7-modules/` | D7 ports of `sample_animal_content` and `theme_menu_block` for the D7 test site |
 
 ## Requirements
 
 - [Backdrop CMS](https://backdropcms.org) 1.x
-- [ddev](https://ddev.readthedocs.io) (local development environment)
-- [Bee](https://github.com/backdrop-contrib/bee) (Backdrop CLI, installed via ddev add-on)
+- PHP 7.1+
 
-## Getting started
+## Installation
 
-```bash
-# Clone the repo
-git clone <repo-url> theme_machine
-cd theme_machine/backdrop
+Copy `modules/d7_theme_compat/` into your Backdrop site's modules directory and enable it.
 
-# Start ddev
-ddev start
+For the full testing environment, see the `_workspace/` directory.
 
-# Install the add-on for Bee
-ddev add-on get backdrop-ops/ddev-backdrop-bee
+## Repository structure
 
-# Enable the compat layer and utilities
-ddev bee en d7_theme_compat theme_tester watchdog_tools theme_menu_block lost_regions
-
-# Clear caches
-ddev bee cc all
 ```
+README.md               This file
+DOC/                    Reference documentation
+modules/                The product — Backdrop modules
+  d7_theme_compat/        The compatibility layer
+  theme_tester/           Automated theme smoke-testing
+  watchdog_tools/         Watchdog log CLI tools
+  theme_menu_block/       Theme switcher block
+  lost_regions/           Fallback region rendering
+d7-modules/             D7 ports of utility modules
 
-The site runs at `https://theme-machine.ddev.site/`.
+_workspace/             Development & testing environment
+  backdrop/               Backdrop CMS install (DDEV project)
+  drupal-7/               Drupal 7 install (DDEV project)
+  scripts/                Testing pipeline (compare.js, triage.js, etc.)
+  TOOLING/                Theme catalogs, triage data, test results
+  SPRINTS/                Sprint tracking
+  HANDOFF/                Session journals
+  CLAUDE.md               AI agent instructions
+```
 
 ## Documentation
 
-- `DOC/backdrop-for-llms.md` — Backdrop vs D7 quick reference (also useful for human developers)
-- `DOC/template-mapping.md` — Strategy for D7 ↔ Backdrop template substitution
-- `DOC/theme-tester.md` — `bee theme-test` usage and options
-- `DOC/watchdog-tools.md` — `bee watchdog-clear` / `bee watchdog-count` usage
-- `DOC/theme-menu-block.md` — Theme switcher block setup
-- `DOC/lost-regions.md` — Lost Regions module setup
-- `DOC/git-conventions.md` — Commit style and workflow conventions
-- `TOOLING/` — Internal working data: theme catalogs, triage results, test run output
-
-## Project structure
-
-```
-theme_machine/
-  backdrop/               # Backdrop CMS install (ddev root)
-    modules/              # Custom modules (d7_theme_compat, theme_tester, etc.)
-    themes/               # D7 themes under test
-  DOC/                    # Reference documentation
-  TOOLING/                # Internal working data (catalogs, triage, test results)
-```
+- [`DOC/scripts-reference.md`](DOC/scripts-reference.md) — Testing pipeline quick reference
+- [`DOC/backdrop-for-llms.md`](DOC/backdrop-for-llms.md) — Backdrop vs D7 quick reference
+- [`DOC/template-mapping.md`](DOC/template-mapping.md) — D7 ↔ Backdrop template substitution strategy
+- [`DOC/theme-tester.md`](DOC/theme-tester.md) — `bee theme-test` usage
+- [`DOC/lost-regions.md`](DOC/lost-regions.md) — Lost Regions module setup

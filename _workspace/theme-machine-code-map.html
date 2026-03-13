@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Theme Machine — Code Map</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #0f1117; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+  header { background: #1a1d27; padding: 10px 20px; border-bottom: 1px solid #2a2d3a; display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+  header h1 { font-size: 15px; font-weight: 600; color: #fff; white-space: nowrap; }
+  header .subtitle { font-size: 12px; color: #888; }
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar { width: 260px; background: #1a1d27; border-right: 1px solid #2a2d3a; overflow-y: auto; flex-shrink: 0; padding: 12px; }
+  .sidebar h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin: 12px 0 6px; }
+  .sidebar h3:first-child { margin-top: 0; }
+
+  /* Preset buttons */
+  .presets { display: flex; flex-wrap: wrap; gap: 4px; }
+  .preset-btn { background: #252836; border: 1px solid #3a3d4a; color: #ccc; padding: 5px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: all .15s; }
+  .preset-btn:hover { background: #3a3d4a; color: #fff; }
+  .preset-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+
+  /* Checkboxes */
+  .check-group label { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 3px 0; cursor: pointer; }
+  .check-group input[type=checkbox] { accent-color: #3b82f6; }
+  .color-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+  /* Comments */
+  .comment-list { margin-top: 4px; }
+  .comment-item { background: #252836; border: 1px solid #3a3d4a; border-radius: 4px; padding: 8px; margin-bottom: 6px; font-size: 11px; position: relative; }
+  .comment-item .target { color: #93c5fd; font-weight: 600; }
+  .comment-item .file { color: #666; font-size: 10px; }
+  .comment-item .text { margin-top: 4px; color: #ccc; }
+  .comment-item .del { position: absolute; top: 4px; right: 6px; background: none; border: none; color: #666; cursor: pointer; font-size: 14px; }
+  .comment-item .del:hover { color: #ef4444; }
+  .no-comments { font-size: 11px; color: #555; font-style: italic; }
+
+  /* Canvas area */
+  .canvas-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .canvas-container { flex: 1; position: relative; overflow: hidden; background: #13151e; }
+  .canvas-container svg { width: 100%; height: 100%; }
+
+  /* Zoom controls */
+  .zoom-controls { position: absolute; top: 10px; right: 10px; display: flex; gap: 4px; z-index: 10; }
+  .zoom-btn { background: #252836; border: 1px solid #3a3d4a; color: #ccc; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  .zoom-btn:hover { background: #3a3d4a; color: #fff; }
+
+  /* Legend */
+  .legend { position: absolute; bottom: 10px; left: 10px; background: rgba(26,29,39,.9); border: 1px solid #2a2d3a; border-radius: 6px; padding: 8px 12px; font-size: 10px; z-index: 10; }
+  .legend-title { font-weight: 600; margin-bottom: 4px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+  .legend-line { width: 24px; height: 2px; }
+
+  /* Prompt output */
+  .prompt-area { background: #1a1d27; border-top: 1px solid #2a2d3a; padding: 10px 16px; flex-shrink: 0; max-height: 180px; overflow-y: auto; }
+  .prompt-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .prompt-header span { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+  .copy-btn { background: #252836; border: 1px solid #3a3d4a; color: #ccc; padding: 4px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+  .copy-btn:hover { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+  .prompt-text { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; color: #b0b0b0; white-space: pre-wrap; line-height: 1.5; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 100; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #1a1d27; border: 1px solid #3a3d4a; border-radius: 8px; padding: 20px; width: 400px; max-width: 90%; }
+  .modal h3 { font-size: 14px; margin-bottom: 4px; }
+  .modal .modal-file { font-size: 11px; color: #888; margin-bottom: 12px; font-family: monospace; }
+  .modal textarea { width: 100%; background: #252836; border: 1px solid #3a3d4a; color: #e0e0e0; border-radius: 4px; padding: 8px; font-family: system-ui; font-size: 13px; resize: vertical; height: 80px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+  .modal-actions button { padding: 6px 16px; border-radius: 4px; font-size: 12px; cursor: pointer; border: 1px solid #3a3d4a; }
+  .modal-actions .cancel { background: #252836; color: #ccc; }
+  .modal-actions .save { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Theme Machine</h1>
+  <span class="subtitle">Architecture Code Map</span>
+</header>
+
+<div class="main">
+  <div class="sidebar">
+    <h3>View Presets</h3>
+    <div class="presets" id="presets"></div>
+
+    <h3>Layers</h3>
+    <div class="check-group" id="layer-checks"></div>
+
+    <h3>Connection Types</h3>
+    <div class="check-group" id="conn-checks"></div>
+
+    <h3>Comments (<span id="comment-count">0</span>)</h3>
+    <div class="comment-list" id="comment-list">
+      <div class="no-comments">Click a component to add feedback</div>
+    </div>
+  </div>
+
+  <div class="canvas-wrap">
+    <div class="canvas-container" id="canvas-container">
+      <svg id="diagram" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="zoom-controls">
+        <button class="zoom-btn" onclick="zoom(1.2)">+</button>
+        <button class="zoom-btn" onclick="zoom(1/1.2)">&minus;</button>
+        <button class="zoom-btn" onclick="resetZoom()" style="font-size:11px">1:1</button>
+      </div>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div class="prompt-area">
+      <div class="prompt-header">
+        <span>Prompt Output</span>
+        <button class="copy-btn" onclick="copyPrompt()">Copy Prompt</button>
+      </div>
+      <div class="prompt-text" id="prompt-output">Explore the architecture and click components to add comments.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Comment modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3 id="modal-title"></h3>
+    <div class="modal-file" id="modal-file"></div>
+    <textarea id="modal-text" placeholder="Add your feedback about this component..."></textarea>
+    <div class="modal-actions">
+      <button class="cancel" onclick="closeModal()">Cancel</button>
+      <button class="save" onclick="saveComment()">Add Comment</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Architecture Data ──────────────────────────────────────────────
+
+const layers = {
+  automation: { label: 'Automation Scripts', color: '#dbeafe', textColor: '#1e40af' },
+  backdrop:   { label: 'Backdrop Modules',   color: '#dcfce7', textColor: '#166534' },
+  d7:         { label: 'D7 Modules',         color: '#fef3c7', textColor: '#92400e' },
+  data:       { label: 'Data & Output',      color: '#fce7f3', textColor: '#9d174d' },
+  external:   { label: 'DDEV Sites',         color: '#e0e7ff', textColor: '#3730a3' },
+  planning:   { label: 'Planning & Docs',    color: '#f3e8ff', textColor: '#6b21a8' },
+};
+
+const connectionTypes = {
+  'data-flow':  { label: 'Data Flow',     color: '#3b82f6', dash: '' },
+  'tool-call':  { label: 'Tool Call',     color: '#10b981', dash: '6,3' },
+  'event':      { label: 'Event/Hook',    color: '#ef4444', dash: '4,4' },
+  'dependency': { label: 'Dependency',    color: '#6b7280', dash: '2,2' },
+  'generates':  { label: 'Generates',     color: '#f97316', dash: '8,4' },
+};
+
+const nodes = [
+  // Automation Scripts layer (y ~50)
+  { id: 'compare',       label: 'compare.js',           subtitle: 'scripts/compare.js',              x: 80,  y: 50,  w: 140, h: 44, layer: 'automation' },
+  { id: 'screenshot',    label: 'screenshot.js',        subtitle: 'scripts/screenshot.js',            x: 280, y: 50,  w: 140, h: 44, layer: 'automation' },
+  { id: 'playwright',    label: 'Playwright',           subtitle: 'node_modules/playwright',          x: 480, y: 50,  w: 130, h: 44, layer: 'automation' },
+
+  // Backdrop Modules layer (y ~150)
+  { id: 'd7-compat',     label: 'd7_theme_compat',      subtitle: 'backdrop/modules/d7_theme_compat', x: 60,  y: 155, w: 155, h: 44, layer: 'backdrop' },
+  { id: 'theme-tester',  label: 'theme_tester',         subtitle: 'backdrop/modules/theme_tester',    x: 260, y: 155, w: 140, h: 44, layer: 'backdrop' },
+  { id: 'watchdog',      label: 'watchdog_tools',       subtitle: 'backdrop/modules/watchdog_tools',  x: 445, y: 155, w: 145, h: 44, layer: 'backdrop' },
+  { id: 'lost-regions',  label: 'lost_regions',         subtitle: 'backdrop/modules/lost_regions',    x: 635, y: 155, w: 140, h: 44, layer: 'backdrop' },
+  { id: 'menu-block-b',  label: 'theme_menu_block',     subtitle: 'backdrop/modules/theme_menu_block',x: 60,  y: 215, w: 155, h: 44, layer: 'backdrop' },
+  { id: 'animal-b',      label: 'sample_animal_content',subtitle: 'backdrop/modules/sample_animal_content', x: 260, y: 215, w: 175, h: 44, layer: 'backdrop' },
+  { id: 'curr-theme-b',  label: 'current_theme_block',  subtitle: 'backdrop/modules/current_theme_block',   x: 480, y: 215, w: 170, h: 44, layer: 'backdrop' },
+
+  // D7 Modules layer (y ~310)
+  { id: 'curr-theme-d7', label: 'current_theme_block',  subtitle: 'd7-modules/current_theme_block',  x: 80,  y: 310, w: 170, h: 44, layer: 'd7' },
+  { id: 'animal-d7',     label: 'sample_animal_content',subtitle: 'd7-modules/sample_animal_content', x: 300, y: 310, w: 175, h: 44, layer: 'd7' },
+  { id: 'menu-block-d7', label: 'theme_menu_block',     subtitle: 'd7-modules/theme_menu_block',     x: 530, y: 310, w: 155, h: 44, layer: 'd7' },
+
+  // DDEV Sites (External) layer (y ~410)
+  { id: 'backdrop-site', label: 'Backdrop DDEV',        subtitle: 'theme-machine.ddev.site',          x: 120, y: 410, w: 150, h: 44, layer: 'external' },
+  { id: 'd7-site',       label: 'Drupal 7 DDEV',        subtitle: 'drupal-7.ddev.site',               x: 420, y: 410, w: 150, h: 44, layer: 'external' },
+
+  // Data & Output layer (y ~510)
+  { id: 'screenshots',   label: 'Screenshots',          subtitle: 'screenshots/',                     x: 80,  y: 510, w: 130, h: 44, layer: 'data' },
+  { id: 'reports',       label: 'HTML Reports',         subtitle: 'reports/',                         x: 260, y: 510, w: 130, h: 44, layer: 'data' },
+  { id: 'catalog',       label: 'Theme Catalog',        subtitle: 'TOOLING/theme-catalog/',           x: 440, y: 510, w: 140, h: 44, layer: 'data' },
+
+  // Planning layer (y ~600)
+  { id: 'sprints',       label: 'Sprint Plans',         subtitle: 'SPRINTS/',                         x: 100, y: 600, w: 130, h: 44, layer: 'planning' },
+  { id: 'docs',          label: 'DOC Reference',        subtitle: 'DOC/',                             x: 290, y: 600, w: 130, h: 44, layer: 'planning' },
+  { id: 'handoffs',      label: 'Handoff Journals',     subtitle: '.handoff/',                        x: 480, y: 600, w: 140, h: 44, layer: 'planning' },
+];
+
+const connections = [
+  // compare.js orchestrates screenshot.js
+  { from: 'compare',     to: 'screenshot',    type: 'tool-call',  label: 'captureTheme()' },
+  // screenshot.js uses Playwright
+  { from: 'screenshot',  to: 'playwright',    type: 'dependency',  label: 'require' },
+  // compare.js generates reports
+  { from: 'compare',     to: 'reports',       type: 'generates',   label: 'buildReport()' },
+  // screenshot.js generates screenshots
+  { from: 'screenshot',  to: 'screenshots',   type: 'generates',   label: 'PNG + HTML' },
+
+  // screenshot.js talks to both DDEV sites
+  { from: 'screenshot',  to: 'backdrop-site', type: 'data-flow',   label: 'ddev bee' },
+  { from: 'screenshot',  to: 'd7-site',       type: 'data-flow',   label: 'ddev drush' },
+
+  // Playwright hits both sites via HTTP
+  { from: 'playwright',  to: 'backdrop-site', type: 'data-flow',   label: 'HTTP' },
+  { from: 'playwright',  to: 'd7-site',       type: 'data-flow',   label: 'HTTP' },
+
+  // d7_theme_compat is the core module — runs on Backdrop site
+  { from: 'd7-compat',   to: 'backdrop-site', type: 'event',       label: '.info rewrite' },
+  // theme_tester runs on Backdrop
+  { from: 'theme-tester', to: 'backdrop-site', type: 'event',      label: 'smoke test' },
+  // watchdog_tools runs on Backdrop
+  { from: 'watchdog',    to: 'backdrop-site', type: 'tool-call',   label: 'clear/count' },
+  // lost_regions runs on Backdrop
+  { from: 'lost-regions', to: 'backdrop-site', type: 'event',      label: 'region mapping' },
+
+  // Menu block, animal content, current_theme on Backdrop
+  { from: 'menu-block-b', to: 'backdrop-site', type: 'event',     label: 'block' },
+  { from: 'animal-b',    to: 'backdrop-site', type: 'event',       label: 'test content' },
+  { from: 'curr-theme-b', to: 'backdrop-site', type: 'event',     label: 'block' },
+
+  // D7 modules run on D7 site
+  { from: 'curr-theme-d7', to: 'd7-site',    type: 'event',       label: 'block' },
+  { from: 'animal-d7',   to: 'd7-site',      type: 'event',       label: 'test content' },
+  { from: 'menu-block-d7', to: 'd7-site',    type: 'event',       label: 'block' },
+
+  // d7_theme_compat depends on theme_tester for smoke tests
+  { from: 'theme-tester', to: 'd7-compat',   type: 'dependency',  label: 'validates' },
+
+  // compare.js reads watchdog via screenshot.js
+  { from: 'screenshot',  to: 'watchdog',     type: 'tool-call',   label: 'bee log' },
+
+  // Sprint plans reference docs
+  { from: 'sprints',     to: 'docs',         type: 'dependency',  label: 'references' },
+  // Handoffs cross-reference sprints
+  { from: 'handoffs',    to: 'sprints',      type: 'dependency',  label: 'tracks' },
+
+  // Catalog feeds theme list to compare.js
+  { from: 'catalog',     to: 'compare',      type: 'data-flow',   label: 'theme list' },
+];
+
+// ── State ──────────────────────────────────────────────────────────
+
+const DEFAULTS = {
+  layers: Object.fromEntries(Object.keys(layers).map(k => [k, true])),
+  connections: Object.fromEntries(Object.keys(connectionTypes).map(k => [k, true])),
+  preset: 'full',
+};
+
+const state = {
+  layers: { ...DEFAULTS.layers },
+  connections: { ...DEFAULTS.connections },
+  preset: 'full',
+  comments: [],
+  zoom: 1,
+  panX: 0,
+  panY: 0,
+  modalNode: null,
+};
+
+const presets = {
+  full:       { label: 'Full System',      layers: Object.keys(layers),                         conns: Object.keys(connectionTypes) },
+  pipeline:   { label: 'Test Pipeline',    layers: ['automation', 'external', 'data'],           conns: ['data-flow', 'tool-call', 'generates'] },
+  modules:    { label: 'CMS Modules',      layers: ['backdrop', 'd7', 'external'],               conns: ['event', 'dependency', 'tool-call'] },
+  backdrop:   { label: 'Backdrop Only',    layers: ['backdrop', 'external'],                     conns: ['event', 'dependency', 'tool-call'] },
+  dataflow:   { label: 'Data Flow',        layers: ['automation', 'data', 'external'],           conns: ['data-flow', 'generates'] },
+};
+
+// ── Rendering ──────────────────────────────────────────────────────
+
+function renderControls() {
+  // Presets
+  const presetsEl = document.getElementById('presets');
+  presetsEl.innerHTML = Object.entries(presets).map(([k, v]) =>
+    `<button class="preset-btn ${state.preset === k ? 'active' : ''}" onclick="applyPreset('${k}')">${v.label}</button>`
+  ).join('');
+
+  // Layer checkboxes
+  const layerEl = document.getElementById('layer-checks');
+  layerEl.innerHTML = Object.entries(layers).map(([k, v]) =>
+    `<label><input type="checkbox" ${state.layers[k] ? 'checked' : ''} onchange="toggleLayer('${k}')">
+     <span class="color-dot" style="background:${v.color}"></span> ${v.label}</label>`
+  ).join('');
+
+  // Connection type checkboxes
+  const connEl = document.getElementById('conn-checks');
+  connEl.innerHTML = Object.entries(connectionTypes).map(([k, v]) =>
+    `<label><input type="checkbox" ${state.connections[k] ? 'checked' : ''} onchange="toggleConn('${k}')">
+     <span class="color-dot" style="background:${v.color}"></span> ${v.label}</label>`
+  ).join('');
+}
+
+function renderComments() {
+  const el = document.getElementById('comment-list');
+  document.getElementById('comment-count').textContent = state.comments.length;
+  if (state.comments.length === 0) {
+    el.innerHTML = '<div class="no-comments">Click a component to add feedback</div>';
+    return;
+  }
+  el.innerHTML = state.comments.map((c, i) =>
+    `<div class="comment-item">
+      <button class="del" onclick="deleteComment(${i})">&times;</button>
+      <div class="target">${c.targetLabel}</div>
+      <div class="file">${c.targetFile}</div>
+      <div class="text">${c.text}</div>
+    </div>`
+  ).join('');
+}
+
+function renderDiagram() {
+  const svg = document.getElementById('diagram');
+  const visibleNodes = nodes.filter(n => state.layers[n.layer]);
+  const visibleIds = new Set(visibleNodes.map(n => n.id));
+
+  const visibleConns = connections.filter(c =>
+    state.connections[c.type] &&
+    visibleIds.has(c.from) &&
+    visibleIds.has(c.to)
+  );
+
+  // Build SVG
+  let defs = '<defs>';
+  Object.entries(connectionTypes).forEach(([k, v]) => {
+    defs += `<marker id="arrow-${k}" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="${v.color}"/>
+    </marker>`;
+  });
+  defs += '</defs>';
+
+  // Layer bands (background)
+  const layerYBands = {
+    automation: { y: 25, h: 80 },
+    backdrop:   { y: 130, h: 145 },
+    d7:         { y: 290, h: 75 },
+    external:   { y: 385, h: 80 },
+    data:       { y: 485, h: 80 },
+    planning:   { y: 575, h: 80 },
+  };
+
+  let bands = '';
+  Object.entries(layerYBands).forEach(([k, band]) => {
+    if (!state.layers[k]) return;
+    const l = layers[k];
+    bands += `<rect x="10" y="${band.y}" width="820" height="${band.h}" rx="6" fill="${l.color}" opacity="0.06"/>`;
+    bands += `<text x="820" y="${band.y + 14}" text-anchor="end" fill="${l.textColor}" opacity="0.35" font-size="10" font-weight="600">${l.label}</text>`;
+  });
+
+  // Connections
+  let paths = '';
+  visibleConns.forEach(c => {
+    const fromNode = nodes.find(n => n.id === c.from);
+    const toNode = nodes.find(n => n.id === c.to);
+    if (!fromNode || !toNode) return;
+
+    const x1 = fromNode.x + fromNode.w / 2;
+    const y1 = fromNode.y + fromNode.h / 2;
+    const x2 = toNode.x + toNode.w / 2;
+    const y2 = toNode.y + toNode.h / 2;
+
+    // Connect from bottom/top edges
+    let sy, ey;
+    if (y2 > y1) { sy = fromNode.y + fromNode.h; ey = toNode.y; }
+    else if (y2 < y1) { sy = fromNode.y; ey = toNode.y + toNode.h; }
+    else { sy = y1; ey = y2; }
+
+    // Bezier control points
+    const midY = (sy + ey) / 2;
+    const ct = connectionTypes[c.type];
+    const dashAttr = ct.dash ? `stroke-dasharray="${ct.dash}"` : '';
+
+    paths += `<path d="M${x1},${sy} C${x1},${midY} ${x2},${midY} ${x2},${ey}"
+      fill="none" stroke="${ct.color}" stroke-width="1.5" ${dashAttr}
+      marker-end="url(#arrow-${c.type})" opacity="0.7"/>`;
+
+    // Label on connection
+    if (c.label) {
+      const lx = (x1 + x2) / 2;
+      const ly = midY - 4;
+      paths += `<text x="${lx}" y="${ly}" text-anchor="middle" fill="${ct.color}" font-size="9" opacity="0.6">${c.label}</text>`;
+    }
+  });
+
+  // Nodes
+  let nodesSvg = '';
+  visibleNodes.forEach(n => {
+    const l = layers[n.layer];
+    const hasComment = state.comments.some(c => c.target === n.id);
+    const borderColor = hasComment ? '#3b82f6' : 'rgba(255,255,255,0.08)';
+    const borderWidth = hasComment ? 2 : 1;
+
+    nodesSvg += `<g class="node" style="cursor:pointer" onclick="openModal('${n.id}')">
+      <rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="6"
+        fill="${l.color}" stroke="${borderColor}" stroke-width="${borderWidth}"/>
+      ${hasComment ? `<circle cx="${n.x + n.w - 6}" cy="${n.y + 6}" r="4" fill="#3b82f6"/>` : ''}
+      <text x="${n.x + n.w/2}" y="${n.y + 18}" text-anchor="middle"
+        fill="${l.textColor}" font-size="11" font-weight="600">${n.label}</text>
+      <text x="${n.x + n.w/2}" y="${n.y + 32}" text-anchor="middle"
+        fill="${l.textColor}" font-size="9" opacity="0.6">${n.subtitle}</text>
+    </g>`;
+  });
+
+  svg.innerHTML = `
+    ${defs}
+    <g transform="translate(${state.panX},${state.panY}) scale(${state.zoom})">
+      ${bands}${paths}${nodesSvg}
+    </g>`;
+}
+
+function renderLegend() {
+  const el = document.getElementById('legend');
+  let html = '<div class="legend-title">Connections</div>';
+  Object.entries(connectionTypes).forEach(([k, v]) => {
+    if (!state.connections[k]) return;
+    const style = v.dash
+      ? `background: repeating-linear-gradient(90deg, ${v.color} 0, ${v.color} 4px, transparent 4px, transparent 7px)`
+      : `background: ${v.color}`;
+    html += `<div class="legend-item"><span class="legend-line" style="${style}"></span>${v.label}</div>`;
+  });
+  el.innerHTML = html;
+}
+
+function updatePrompt() {
+  const el = document.getElementById('prompt-output');
+
+  // Determine visible context
+  const activeLayers = Object.entries(state.layers).filter(([,v]) => v).map(([k]) => layers[k].label);
+  const hiddenLayers = Object.entries(state.layers).filter(([,v]) => !v).map(([k]) => layers[k].label);
+
+  let prompt = `This is the Theme Machine architecture — a Backdrop CMS project that makes Drupal 7 themes run natively on Backdrop.`;
+
+  if (hiddenLayers.length > 0 && hiddenLayers.length <= activeLayers.length) {
+    prompt += `\n\nCurrently viewing: ${activeLayers.join(', ')}.`;
+  }
+
+  if (state.preset !== 'full') {
+    const presetLabel = presets[state.preset]?.label;
+    if (presetLabel) prompt += ` (${presetLabel} view)`;
+  }
+
+  if (state.comments.length > 0) {
+    prompt += '\n\nFeedback on specific components:\n';
+    state.comments.forEach(c => {
+      prompt += `\n**${c.targetLabel}** (${c.targetFile}):\n${c.text}\n`;
+    });
+  }
+
+  el.textContent = prompt;
+}
+
+function updateAll() {
+  renderControls();
+  renderComments();
+  renderDiagram();
+  renderLegend();
+  updatePrompt();
+}
+
+// ── Interactions ───────────────────────────────────────────────────
+
+function applyPreset(key) {
+  const p = presets[key];
+  state.preset = key;
+  Object.keys(state.layers).forEach(k => state.layers[k] = p.layers.includes(k));
+  Object.keys(state.connections).forEach(k => state.connections[k] = p.conns.includes(k));
+  updateAll();
+}
+
+function toggleLayer(key) {
+  state.layers[key] = !state.layers[key];
+  state.preset = '';
+  updateAll();
+}
+
+function toggleConn(key) {
+  state.connections[key] = !state.connections[key];
+  state.preset = '';
+  updateAll();
+}
+
+function zoom(factor) {
+  state.zoom = Math.max(0.3, Math.min(3, state.zoom * factor));
+  renderDiagram();
+}
+
+function resetZoom() {
+  state.zoom = 1;
+  state.panX = 0;
+  state.panY = 0;
+  renderDiagram();
+}
+
+// Pan with mouse drag
+let isPanning = false, panStart = {};
+const container = document.getElementById('canvas-container');
+container.addEventListener('mousedown', e => {
+  if (e.target.closest('.node')) return;
+  isPanning = true;
+  panStart = { x: e.clientX - state.panX, y: e.clientY - state.panY };
+});
+container.addEventListener('mousemove', e => {
+  if (!isPanning) return;
+  state.panX = e.clientX - panStart.x;
+  state.panY = e.clientY - panStart.y;
+  renderDiagram();
+});
+container.addEventListener('mouseup', () => isPanning = false);
+container.addEventListener('mouseleave', () => isPanning = false);
+
+// Scroll to zoom
+container.addEventListener('wheel', e => {
+  e.preventDefault();
+  zoom(e.deltaY < 0 ? 1.08 : 1/1.08);
+}, { passive: false });
+
+// Modal
+function openModal(nodeId) {
+  const node = nodes.find(n => n.id === nodeId);
+  if (!node) return;
+  state.modalNode = node;
+  document.getElementById('modal-title').textContent = node.label;
+  document.getElementById('modal-file').textContent = node.subtitle;
+  document.getElementById('modal-text').value = '';
+  document.getElementById('modal').classList.add('open');
+  document.getElementById('modal-text').focus();
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  state.modalNode = null;
+}
+
+function saveComment() {
+  const text = document.getElementById('modal-text').value.trim();
+  if (!text || !state.modalNode) return;
+  state.comments.push({
+    id: Date.now(),
+    target: state.modalNode.id,
+    targetLabel: state.modalNode.label,
+    targetFile: state.modalNode.subtitle,
+    text,
+  });
+  closeModal();
+  updateAll();
+}
+
+function deleteComment(index) {
+  state.comments.splice(index, 1);
+  updateAll();
+}
+
+// Close modal on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Enter' && !e.shiftKey && document.getElementById('modal').classList.contains('open')) {
+    e.preventDefault();
+    saveComment();
+  }
+});
+
+function copyPrompt() {
+  const text = document.getElementById('prompt-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy Prompt', 1500);
+  });
+}
+
+// ── Init ───────────────────────────────────────────────────────────
+updateAll();
+</script>
+</body>
+</html>

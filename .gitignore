@@ -1,43 +1,47 @@
 # OS files
 .DS_Store
 
-# Local dev environment (allow ddev PHP overrides for short_open_tag)
-.ddev/
-backdrop/.ddev/*
-!backdrop/.ddev/php/
-backdrop/.ddev/php/*
-!backdrop/.ddev/php/short-open-tag.ini
-
-# Reference Drupal 7 installs (not part of the project)
-drupal/
-drupal-7/
-
-# Backdrop site data (config, uploads, private files)
-backdrop/files/
-backdrop/private/
-
 # Claude Code local state
 .claude/
 
+# ---- _workspace/ (development environment) ----
+
+# Local dev environment (allow ddev PHP overrides for short_open_tag)
+_workspace/.ddev/
+_workspace/backdrop/.ddev/*
+!_workspace/backdrop/.ddev/php/
+_workspace/backdrop/.ddev/php/*
+!_workspace/backdrop/.ddev/php/short-open-tag.ini
+
+# Reference Drupal 7 install
+_workspace/drupal-7/
+
+# Backdrop CMS install (tracked selectively)
+_workspace/backdrop/
+
+# Backdrop site data (config, uploads, private files)
+_workspace/backdrop/files/
+_workspace/backdrop/private/
+
+# Backdrop's original git metadata
+_workspace/backdrop/.git.original/
+
+# D7 themes under test
+_workspace/backdrop/themes/
+
+# Node dependencies
+_workspace/node_modules/
+
+# Generated output
+_workspace/screenshots/
+_workspace/reports/
+
 # Working notes
-Notes/
+_workspace/Notes/
+_workspace/Context.docx
+
+# Incoming theme clones
+INCOMING/
 
 # Agent handoff protocol source (upstream repo)
 agent-handoff/
-
-# Incoming theme clones (raw downloads, not part of Backdrop install)
-INCOMING/
-
-# D7 themes under test (not tracked; see TOOLING/d7-themes-installed.md)
-backdrop/themes/
-
-# Misc files
-Context.docx
-
-# Sprint 1 generated output
-node_modules/
-screenshots/
-reports/
-
-# Backdrop's original git metadata (renamed to avoid submodule behavior)
-backdrop/.git.original/

@@ -1,6 +1,6 @@
 # Scripts Reference
 
-Quick reference for the five Node.js scripts in `scripts/`. All are run from the project root.
+Quick reference for the five Node.js scripts in `_workspace/scripts/`. All are run from the project root or the `_workspace/` directory.
 
 ---
 
@@ -9,7 +9,7 @@ Quick reference for the five Node.js scripts in `scripts/`. All are run from the
 Downloads D7 themes from drupal.org into `backdrop/themes/`. Reads the theme catalog and skips themes already present. Run this when you need to expand the theme set.
 
 ```
-node scripts/harvest.js [--batch N]
+node _workspace/scripts/harvest.js [--batch N]
 ```
 
 | Flag | Default | Description |
@@ -27,7 +27,7 @@ node scripts/harvest.js [--batch N]
 Assigns standard test blocks to regions for each D7 theme that lacks block configuration. Reads each theme's `.info` file to discover regions, then inserts rows into the D7 database. Skips themes already configured. Run this after copying new themes into `drupal-7/sites/all/themes/`.
 
 ```
-node scripts/setup-d7-blocks.js [--dry-run]
+node _workspace/scripts/setup-d7-blocks.js [--dry-run]
 ```
 
 | Flag | Description |
@@ -45,7 +45,7 @@ node scripts/setup-d7-blocks.js [--dry-run]
 The main pipeline. Switches each site to each theme in sequence, takes a screenshot, captures watchdog output, then restores defaults. Produces an HTML comparison report. Default run is 10 themes; use `--all` for a full run.
 
 ```
-node scripts/compare.js [options]
+node _workspace/scripts/compare.js [options]
 ```
 
 | Flag | Description |
@@ -72,7 +72,7 @@ node scripts/compare.js [options]
 Reads D7 `.info` files and watchdog `meta.json` data from a prior `compare.js` run and sorts themes into `ok` vs `hard`. Hard criteria: PHP errors in watchdog, or theme lacks both a left-ish and right-ish sidebar region. Dry run by default; use `--apply` to write output.
 
 ```
-node scripts/triage.js [--apply]
+node _workspace/scripts/triage.js [--apply]
 ```
 
 | Flag | Description |
@@ -90,7 +90,7 @@ node scripts/triage.js [--apply]
 Generates a self-contained interactive HTML reviewer from existing screenshots. Keyboard-navigable, side-by-side D7 vs Backdrop, with Accept / Reject / Needs Work verdicts saved to localStorage and exportable as JSON. Defaults to the most recent `compare.js` run.
 
 ```
-node scripts/build-reviewer.js [options]
+node _workspace/scripts/build-reviewer.js [options]
 ```
 
 | Flag | Description |
@@ -108,27 +108,27 @@ node scripts/build-reviewer.js [options]
 
 **Full run from scratch:**
 ```
-node scripts/compare.js --all
-node scripts/triage.js --apply
-node scripts/build-reviewer.js
+node _workspace/scripts/compare.js --all
+node _workspace/scripts/triage.js --apply
+node _workspace/scripts/build-reviewer.js
 ```
 
 **Re-run only ok themes:**
 ```
-node scripts/compare.js --triage
-node scripts/build-reviewer.js
+node _workspace/scripts/compare.js --triage
+node _workspace/scripts/build-reviewer.js
 ```
 
 **Single theme debug:**
 ```
-node scripts/compare.js --theme danland
-node scripts/build-reviewer.js
+node _workspace/scripts/compare.js --theme danland
+node _workspace/scripts/build-reviewer.js
 ```
 
 **After adding new themes to D7:**
 ```
-node scripts/setup-d7-blocks.js
-node scripts/compare.js --skip-existing --all
+node _workspace/scripts/setup-d7-blocks.js
+node _workspace/scripts/compare.js --skip-existing --all
 ```
 
 ---
